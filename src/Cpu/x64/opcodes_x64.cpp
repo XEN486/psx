@@ -331,3 +331,42 @@ void JitX64::BGEZ(InstructionData& data) {
 	cc.bind(end);
 	EmitBranchDelay(data);
 }
+
+void JitX64::SRL(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(r[data.rd], r[data.rt]);
+	cc.shr(r[data.rd], data.sa);
+}
+
+void JitX64::SLTIU(InstructionData& data) {
+	if (data.rt == 0) return;
+	cc.cmp(r[data.rs], (u64)(i16)data.imm);
+	cc.set(x86::CondCode::kUnsignedLT, r[data.rt].r8());
+	cc.movzx(r[data.rt], r[data.rt].r8());
+}
+
+void JitX64::DIVU(InstructionData& data) {
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_divu), FuncSignature::build<void, R3000A*, u32, u32>());
+	node->set_arg(0, m_R3000A);
+	node->set_arg(1, r[data.rs]);
+	node->set_arg(2, r[data.rt]);
+}
+
+void JitX64::MFHI(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(r[data.rd], x86::dword_ptr(r3000a, offsetof(R3000A, hi)));
+}
+
+void JitX64::SLT(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.cmp(r[data.rs], r[data.rt]);
+	cc.set(x86::CondCode::kSignedLT, r[data.rd].r8());
+	cc.movzx(r[data.rd], r[data.rd].r8());
+}
+
+void JitX64::SYSCALL(InstructionData& data) {
+	
+}

@@ -50,6 +50,12 @@ namespace Cpu {
 		void DIV(InstructionData& data) override;
 		void MFLO(InstructionData& data) override;
 		void BGEZ(InstructionData& data) override;
+		void SRL(InstructionData& data) override;
+		void SLTIU(InstructionData& data) override;
+		void DIVU(InstructionData& data) override;
+		void MFHI(InstructionData& data) override;
+		void SLT(InstructionData& data) override;
+		void SYSCALL(InstructionData& data) override;
 		
 	private:
 		void FlushRegisters();

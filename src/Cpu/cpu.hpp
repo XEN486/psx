@@ -176,6 +176,12 @@ namespace Cpu {
 		virtual void DIV(InstructionData& data) = 0;
 		virtual void MFLO(InstructionData& data) = 0;
 		virtual void BGEZ(InstructionData& data) = 0;
+		virtual void SRL(InstructionData& data) = 0;
+		virtual void SLTIU(InstructionData& data) = 0;
+		virtual void DIVU(InstructionData& data) = 0;
+		virtual void MFHI(InstructionData& data) = 0;
+		virtual void SLT(InstructionData& data) = 0;
+		virtual void SYSCALL(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;
