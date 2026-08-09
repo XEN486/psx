@@ -22,6 +22,9 @@ namespace Cpu {
 		void J(InstructionData& data) override;
 		void LHU(InstructionData& data) override;
 		void OR(InstructionData& data) override;
+		void MTC0(InstructionData& data) override;
+		void BNE(InstructionData& data) override;
+		void ADDI(InstructionData& data) override;
 
 	private:
 		void FlushRegisters();

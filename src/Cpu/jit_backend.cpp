@@ -83,7 +83,6 @@ CompiledBlock& JitBackend::RecompileBlock(u32 pc) {
 
 			// account for delay slot
 			end_pc += 4;
-			//m_InBranchDelay = true;
 			break;
 		}
 

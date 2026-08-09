@@ -45,3 +45,25 @@ void CPU::Release() {
 	m_JitBackend->Release();
 	m_Memory.Release();
 }
+
+u32 R3000A::ReadCOP0(u8 reg) {
+	switch (reg) {
+		case 12: return cop0.sr;
+		
+		default: {
+			error_log("read unknown cop0 reg {}", reg);
+			exit(1);
+		}
+	}
+}
+
+void R3000A::WriteCOP0(u8 reg, u32 word) {
+	switch (reg) {
+		case 12: { cop0.sr = word; break; }
+
+		default: {
+			error_log("{:08x} -> unknown cop0 reg {}", word, reg);
+			exit(1);
+		}
+	}
+}

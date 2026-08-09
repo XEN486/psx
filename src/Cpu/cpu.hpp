@@ -22,7 +22,7 @@ namespace Cpu {
 	};
 
 	struct Cop0 {
-
+		u32 sr;	// $12: Status Register (R/W)
 	};
 	
 	struct R3000A {
@@ -138,6 +138,9 @@ namespace Cpu {
 		virtual void J(InstructionData& data) = 0;
 		virtual void LHU(InstructionData& data) = 0;
 		virtual void OR(InstructionData& data) = 0;
+		virtual void MTC0(InstructionData& data) = 0;
+		virtual void BNE(InstructionData& data) = 0;
+		virtual void ADDI(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;
@@ -177,7 +180,11 @@ namespace Cpu {
 		/// @return Reference to the memory map.
 		Memory& GetMemory() { return m_Memory; }
 
-		/// @brief Resets the EmotionEngine's state.
+		/// @brief Returns a reference to the R3000A state.
+		/// @return Reference to the R3000A state.
+		R3000A& GetR3000A() { return m_R3000A; }
+
+		/// @brief Resets the CPU's state.
 		void Reset();
 
 		/// @brief Compiles and runs a single JIT block.

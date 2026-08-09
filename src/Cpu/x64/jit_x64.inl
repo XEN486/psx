@@ -48,6 +48,11 @@ namespace Cpu {
 
 	template <typename Size, typename T>
 	void JitX64::EmitWriteVirtualMemory(T address, const asmjit::x86::Gp& value) {
+		// dont try write when cache is isolated
+		asmjit::Label end = cc.new_label();
+		cc.test(asmjit::x86::dword_ptr(r3000a, offsetof(R3000A, cop0.sr)), 0x10000); // sr.16 == ISc (isolate cache)
+		cc.jnz(end);
+
 		// TODO: optimize scratchpad/rdram to not have call
 		static_assert(std::is_same_v<T, u32> || std::is_same_v<T, asmjit::x86::Gp>);
 		uintptr_t ptr;
@@ -70,6 +75,7 @@ namespace Cpu {
 		node->set_arg(0, m_Memory);
 		node->set_arg(1, address);
 		node->set_arg(2, value);
-	}
 
+		cc.bind(end);
+	}
 }
