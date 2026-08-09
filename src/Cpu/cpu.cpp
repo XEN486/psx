@@ -51,12 +51,12 @@ void CPU::Release() {
 }
 
 u32 R3000A::ReadCOP0(u8 reg) {
-	debug_log("read <- cop0[{}]", reg);
+	//debug_log("read <- cop0[{}]", reg);
 	return cop0[reg];
 }
 
 void R3000A::WriteCOP0(u8 reg, u32 word) {
-	debug_log("write cop0[{}] <- {:08x}", reg, word);
+	//debug_log("write cop0[{}] <- {:08x}", reg, word);
 
 	// only bit 8/9 are R/W
 	if (reg == CAUSE) {
