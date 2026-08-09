@@ -5,6 +5,49 @@ using namespace asmjit;
 static u32 WRAP_ReadCOP0(R3000A* r3000a, u8 reg) { return r3000a->ReadCOP0(reg); }
 static void WRAP_WriteCOP0(R3000A* r3000a, u8 reg, u32 val) { r3000a->WriteCOP0(reg, val); }
 
+static void IMPL_div(R3000A* r3000a, i32 numerator, i32 denominator) {
+	// division by zero case
+	if (denominator == 0) {
+		r3000a->hi = numerator;
+		r3000a->lo = (numerator >= 0) ? 0xffffffff : 1;
+		return;
+	}
+
+	// 0x80000000 / -1 case
+	if ((u32)numerator == 0x80000000 && denominator == -1) {
+		r3000a->hi = 0;
+		r3000a->lo = 0x80000000;
+		return;
+	}
+
+	r3000a->hi = static_cast<u32>(numerator % denominator);
+	r3000a->lo = static_cast<u32>(numerator / denominator);
+}
+
+static void IMPL_divu(R3000A* r3000a, u32 numerator, u32 denominator) {
+	// division by zero case
+	if (denominator == 0) {
+		r3000a->hi = numerator;
+		r3000a->lo = 0xffffffff;
+		return;
+	}
+
+	r3000a->hi = numerator % denominator;
+	r3000a->lo = numerator / denominator;
+}
+
+static void IMPL_mult(R3000A* r3000a, i32 rs, i32 rt) {
+	u64 result = static_cast<u64>(rs) * static_cast<u64>(rt);
+	r3000a->hi = (result >> 32) & 0xffffffff;
+	r3000a->lo = result & 0xffffffff;
+}
+
+static void IMPL_multu(R3000A* r3000a, u32 rs, u32 rt) {
+	u64 result = static_cast<u64>(rs) * static_cast<u64>(rt);
+	r3000a->hi = (result >> 32) & 0xffffffff;
+	r3000a->lo = result & 0xffffffff;
+}
+
 void JitX64::LUI(InstructionData& data) {
 	if (data.rt == 0) return;
 	cc.mov(r[data.rt], (data.imm << 16));
@@ -59,6 +102,7 @@ void JitX64::OR(InstructionData& data) {
 }
 
 void JitX64::MTC0(InstructionData& data) {
+	// no need to flush and load registers here
 	InvokeNode* node;
 
 	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(&WRAP_WriteCOP0), FuncSignature::build<void, R3000A*, u8, u32>());
@@ -170,6 +214,7 @@ void JitX64::BEQ(InstructionData& data) {
 }
 
 void JitX64::MFC0(InstructionData& data) {
+	// no need to flush and load registers here
 	InvokeNode* node;
 
 	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(&WRAP_WriteCOP0), FuncSignature::build<u32, R3000A*, u8>());
@@ -259,4 +304,30 @@ void JitX64::SRA(InstructionData& data) {
 	if (data.rd == 0) return;
 	cc.mov(r[data.rd], r[data.rt]);
 	cc.sar(r[data.rd], data.sa);
+}
+
+void JitX64::DIV(InstructionData& data) {
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_div), FuncSignature::build<void, R3000A*, i32, i32>());
+	node->set_arg(0, m_R3000A);
+	node->set_arg(1, r[data.rs]);
+	node->set_arg(2, r[data.rt]);
+}
+
+void JitX64::MFLO(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(r[data.rd], x86::dword_ptr(r3000a, offsetof(R3000A, lo)));
+}
+
+void JitX64::BGEZ(InstructionData& data) {
+	Label end = cc.new_label();
+	cc.cmp(r[data.rs], 0);
+	cc.j(x86::CondCode::kSignedLT, end);
+
+	EmitJump((data.pc + 4) + (i32)((i16)data.imm << 2));
+
+	cc.bind(end);
+	EmitBranchDelay(data);
 }

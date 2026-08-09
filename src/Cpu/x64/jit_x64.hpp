@@ -47,6 +47,9 @@ namespace Cpu {
 		void SLTI(InstructionData& data) override;
 		void SUBU(InstructionData& data) override;
 		void SRA(InstructionData& data) override;
+		void DIV(InstructionData& data) override;
+		void MFLO(InstructionData& data) override;
+		void BGEZ(InstructionData& data) override;
 		
 	private:
 		void FlushRegisters();

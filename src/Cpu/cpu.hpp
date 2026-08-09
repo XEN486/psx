@@ -173,6 +173,9 @@ namespace Cpu {
 		virtual void SLTI(InstructionData& data) = 0;
 		virtual void SUBU(InstructionData& data) = 0;
 		virtual void SRA(InstructionData& data) = 0;
+		virtual void DIV(InstructionData& data) = 0;
+		virtual void MFLO(InstructionData& data) = 0;
+		virtual void BGEZ(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

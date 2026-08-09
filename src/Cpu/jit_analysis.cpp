@@ -81,6 +81,20 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					break;
 				}
 
+				// DIV
+				case 0b011010: {
+					UseRegisters({data.rs, data.rt});
+					data.ptr = &JitBackend::DIV;
+					break;
+				}
+
+				// MFLO
+				case 0b010010: {
+					UseRegisters({data.rd});
+					data.ptr = &JitBackend::MFLO;
+					break;
+				}
+
 				// --- branches ---
 				// JR
 				case 0b001000: {
@@ -113,6 +127,14 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 				case 0b00000: {
 					UseRegisters({data.rs}); 
 					data.ptr = &JitBackend::BLTZ; 
+					data.type = InstructionType::Branch;
+					break;
+				}
+
+				// BGEZ
+				case 0b00001: {
+					UseRegisters({data.rs}); 
+					data.ptr = &JitBackend::BGEZ; 
 					data.type = InstructionType::Branch;
 					break;
 				}
