@@ -31,6 +31,13 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					data.ptr = &JitBackend::OR;
 					break;
 				}
+
+				// SLTU
+				case 0b101011: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::SLTU;
+					break;
+				}
 				
 				default: {
 					error_log("unknown special opcode {:06b} @ {:08x}", data.funct, data.pc);
@@ -60,6 +67,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		case 0b001001: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ADDIU; break; }
 		case 0b100101: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LHU; break; }
 		case 0b001000: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ADDI; break; }
+		case 0b100011: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LW; break; }
 
 		// --- branches ---
 		// J

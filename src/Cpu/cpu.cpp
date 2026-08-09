@@ -18,6 +18,10 @@ size_t CPU::RunOnce() {
 	block.fn();
 	m_R3000A.pc = m_R3000A.next_pc;
 
+	if ((m_R3000A.pc == 0xa0 && m_R3000A.gpr[9] == 0x3c) || (m_R3000A.pc == 0xb0 && m_R3000A.gpr[9] == 0x3d)) {
+		std::print("{}", (char)(m_R3000A.gpr[4] & 0xff));
+	}
+
 	//if (block.execution_count == 1) {
 	//	debug_log("execute new block {:04x}->{:04x} [{} instructions]", block.start_pc, block.end_pc, block.instructions);
 	//}
@@ -36,7 +40,7 @@ void CPU::Reset() {
 	m_R3000A.pc = 0xbfc00000;
 
 	// COP0 registers
-	memset(&m_R3000A.cop0, 0, sizeof(Cop0));
+	memset(&m_R3000A.cop0, 0, 32 * sizeof(u32));
 
 	m_JitBackend->Reset();
 }
@@ -47,23 +51,20 @@ void CPU::Release() {
 }
 
 u32 R3000A::ReadCOP0(u8 reg) {
-	switch (reg) {
-		case 12: return cop0.sr;
-		
-		default: {
-			error_log("read unknown cop0 reg {}", reg);
-			exit(1);
-		}
-	}
+	debug_log("read <- cop0[{}]", reg);
+	return cop0[reg];
 }
 
 void R3000A::WriteCOP0(u8 reg, u32 word) {
-	switch (reg) {
-		case 12: { cop0.sr = word; break; }
+	debug_log("write cop0[{}] <- {:08x}", reg, word);
 
-		default: {
-			error_log("{:08x} -> unknown cop0 reg {}", word, reg);
-			exit(1);
-		}
+	// only bit 8/9 are R/W
+	if (reg == CAUSE) {
+		u32 mask = 0b11 << 8;
+		cop0[CAUSE] = (cop0[CAUSE] & (~mask)) | (word & mask);
+	}
+
+	if (reg == BPC || reg == BDA || reg == DCIC || reg == BDAM || reg == BPCM || reg == SR) {
+		cop0[reg] = word;
 	}
 }

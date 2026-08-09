@@ -21,8 +21,18 @@ namespace Cpu {
 		"ra"
 	};
 
-	struct Cop0 {
-		u32 sr;	// $12: Status Register (R/W)
+	enum Cop0Regs : u8 {
+		BPC = 3,
+		BDA = 5,
+		TAR = 6,
+		DCIC = 7,
+		BadA = 8,
+		BDAM = 9,
+		BPCM = 11,
+		SR = 12,
+		CAUSE = 13,
+		EPC = 14,
+		PRID = 15,
 	};
 	
 	struct R3000A {
@@ -33,8 +43,8 @@ namespace Cpu {
 		u32 hi;
 		u32 lo;
 
-		// cop0
-		Cop0 cop0;
+		// cop0 registers
+		u32 cop0[32];
 
 		// stuff for JIT
 		u32 pc;
@@ -141,6 +151,8 @@ namespace Cpu {
 		virtual void MTC0(InstructionData& data) = 0;
 		virtual void BNE(InstructionData& data) = 0;
 		virtual void ADDI(InstructionData& data) = 0;
+		virtual void LW(InstructionData& data) = 0;
+		virtual void SLTU(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

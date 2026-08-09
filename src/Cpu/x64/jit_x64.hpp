@@ -25,7 +25,9 @@ namespace Cpu {
 		void MTC0(InstructionData& data) override;
 		void BNE(InstructionData& data) override;
 		void ADDI(InstructionData& data) override;
-
+		void LW(InstructionData& data) override;
+		void SLTU(InstructionData& data) override;
+		
 	private:
 		void FlushRegisters();
 		void LoadRegisters();

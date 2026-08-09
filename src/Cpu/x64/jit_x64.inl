@@ -50,7 +50,7 @@ namespace Cpu {
 	void JitX64::EmitWriteVirtualMemory(T address, const asmjit::x86::Gp& value) {
 		// dont try write when cache is isolated
 		asmjit::Label end = cc.new_label();
-		cc.test(asmjit::x86::dword_ptr(r3000a, offsetof(R3000A, cop0.sr)), 0x10000); // sr.16 == ISc (isolate cache)
+		cc.test(asmjit::x86::dword_ptr(r3000a, offsetof(R3000A, cop0[SR])), 0x10000); // sr.16 == ISc (isolate cache)
 		cc.jnz(end);
 
 		// TODO: optimize scratchpad/rdram to not have call

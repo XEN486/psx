@@ -83,3 +83,21 @@ void JitX64::ADDI(InstructionData& data) {
 	cc.add(r[data.rt], (i32)(i16)data.imm);
 	// overflow exception
 }
+
+void JitX64::LW(InstructionData& data) {
+	cc.mov(temp, r[data.rs]);
+	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
+	if (data.rt == 0) {
+		EmitReadVirtualMemory<u32>(temp, temp);
+		return;
+	}
+
+	EmitReadVirtualMemory<u32>(r[data.rt], temp);
+}
+
+void JitX64::SLTU(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.cmp(r[data.rs], r[data.rt]);
+	cc.set(x86::CondCode::kUnsignedLT, r[data.rd].r8());
+	cc.movzx(r[data.rd], r[data.rd].r8());
+}
