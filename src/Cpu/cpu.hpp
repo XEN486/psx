@@ -130,7 +130,12 @@ namespace Cpu {
 		void EmitBranchDelay(InstructionData& data);
 		
 	protected:
-		//
+		virtual void LUI(InstructionData& data) = 0;
+		virtual void ORI(InstructionData& data) = 0;
+		virtual void SW(InstructionData& data) = 0;
+		virtual void SLL(InstructionData& data) = 0;
+		virtual void ADDIU(InstructionData& data) = 0;
+		virtual void J(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

@@ -13,9 +13,26 @@ namespace Cpu {
 		void EmitBeginBlock() override;
 		void EmitEndBlock() override;
 
+	protected:
+		void LUI(InstructionData& data) override;
+		void ORI(InstructionData& data) override;
+		void SW(InstructionData& data) override;
+		void SLL(InstructionData& data) override;
+		void ADDIU(InstructionData& data) override;
+		void J(InstructionData& data) override;
+
 	private:
 		void FlushRegisters();
 		void LoadRegisters();
+
+		template <typename T>
+		void EmitJump(T address);
+
+		template <typename Size, typename T>
+		void EmitReadVirtualMemory(const asmjit::x86::Gp& ret, T address);
+
+		template <typename Size, typename T>
+		void EmitWriteVirtualMemory(T address, const asmjit::x86::Gp& value);
 
 	private:
 		asmjit::x86::Compiler cc;
@@ -25,4 +42,5 @@ namespace Cpu {
 	};
 }
 
+#include "jit_x64.inl"
 #endif

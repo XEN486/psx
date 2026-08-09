@@ -31,7 +31,7 @@ void JitX64::EmitBeginBlock() {
 			continue;
 		}
 
-		cc.mov(r[i], x86::qword_ptr(r3000a, offsetof(R3000A, gpr) + (i * sizeof(u32))));
+		cc.mov(r[i], x86::dword_ptr(r3000a, offsetof(R3000A, gpr) + (i * sizeof(u32))));
 	}
 }
 
@@ -45,7 +45,7 @@ void JitX64::FlushRegisters() {
 	for (u8 i = 1; i < 32; i++) {
 		if (!m_UsedRegisters[i]) continue;
 		//m_UsedRegisters[i] = false;
-		cc.mov(x86::qword_ptr(r3000a, offsetof(R3000A, gpr) + (i * sizeof(u32))), r[i]);
+		cc.mov(x86::dword_ptr(r3000a, offsetof(R3000A, gpr) + (i * sizeof(u32))), r[i]);
 	}
 }
 
@@ -57,6 +57,6 @@ void JitX64::LoadRegisters() {
 			continue;
 		}
 
-		cc.mov(r[i], x86::qword_ptr(r3000a, offsetof(R3000A, gpr) + (i * sizeof(u32))));
+		cc.mov(r[i], x86::dword_ptr(r3000a, offsetof(R3000A, gpr) + (i * sizeof(u32))));
 	}
 }
