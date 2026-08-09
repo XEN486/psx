@@ -160,6 +160,19 @@ namespace Cpu {
 		virtual void SB(InstructionData& data) = 0;
 		virtual void JR(InstructionData& data) = 0;
 		virtual void LB(InstructionData& data) = 0;
+		virtual void SLLV(InstructionData& data) = 0;
+		virtual void BEQ(InstructionData& data) = 0;
+		virtual void MFC0(InstructionData& data) = 0;
+		virtual void AND(InstructionData& data) = 0;
+		virtual void ADD(InstructionData& data) = 0;
+		virtual void BGTZ(InstructionData& data) = 0;
+		virtual void BLEZ(InstructionData& data) = 0;
+		virtual void LBU(InstructionData& data) = 0;
+		virtual void JALR(InstructionData& data) = 0;
+		virtual void BLTZ(InstructionData& data) = 0;
+		virtual void SLTI(InstructionData& data) = 0;
+		virtual void SUBU(InstructionData& data) = 0;
+		virtual void SRA(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

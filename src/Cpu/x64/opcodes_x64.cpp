@@ -149,3 +149,114 @@ void JitX64::LB(InstructionData& data) {
 	EmitReadVirtualMemory<u8>(r[data.rt].r8(), temp);
 	cc.movsx(r[data.rt], r[data.rt].r8());
 }
+
+void JitX64::SLLV(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(temp, r[data.rs]);
+	cc.and_(temp, 0b11111);
+	cc.mov(r[data.rd], r[data.rt]);
+	cc.shl(r[data.rd], temp);
+}
+
+void JitX64::BEQ(InstructionData& data) {
+	Label end = cc.new_label();
+	cc.cmp(r[data.rs], r[data.rt]);
+	cc.j(x86::CondCode::kNotEqual, end);
+
+	EmitJump((data.pc + 4) + (i32)((i16)data.imm << 2));
+
+	cc.bind(end);
+	EmitBranchDelay(data);
+}
+
+void JitX64::MFC0(InstructionData& data) {
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(&WRAP_WriteCOP0), FuncSignature::build<u32, R3000A*, u8>());
+	node->set_arg(0, r3000a);
+	node->set_arg(1, data.rd);
+	node->set_ret(0, r[data.rt]);
+}
+
+void JitX64::AND(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(r[data.rd], r[data.rs]);
+	cc.and_(r[data.rd], r[data.rt]);
+}
+
+void JitX64::ADD(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(r[data.rd], r[data.rs]);
+	cc.add(r[data.rd], r[data.rt]);
+	// overflow exception
+}
+
+void JitX64::BGTZ(InstructionData& data) {
+	Label end = cc.new_label();
+	cc.cmp(r[data.rs], 0);
+	cc.j(x86::CondCode::kSignedLE, end);
+
+	EmitJump((data.pc + 4) + (i32)((i16)data.imm << 2));
+
+	cc.bind(end);
+	EmitBranchDelay(data);
+}
+
+void JitX64::BLEZ(InstructionData& data) {
+	Label end = cc.new_label();
+	cc.cmp(r[data.rs], 0);
+	cc.j(x86::CondCode::kSignedGT, end);
+
+	EmitJump((data.pc + 4) + (i32)((i16)data.imm << 2));
+
+	cc.bind(end);
+	EmitBranchDelay(data);
+}
+
+void JitX64::LBU(InstructionData& data) {
+	cc.mov(temp, r[data.rs]);
+	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
+	if (data.rt == 0) {
+		EmitReadVirtualMemory<u8>(temp.r8(), temp);
+		return;
+	}
+
+	EmitReadVirtualMemory<u8>(r[data.rt].r8(), temp);
+	cc.movzx(r[data.rt], r[data.rt].r8());
+}
+
+void JitX64::JALR(InstructionData& data) {
+	EmitJump(r[data.rs]);
+	if (data.rd) cc.mov(r[data.rd], data.pc + 8);
+	EmitBranchDelay(data);
+}
+
+void JitX64::BLTZ(InstructionData& data) {
+	Label end = cc.new_label();
+	cc.cmp(r[data.rs], 0);
+	cc.j(x86::CondCode::kSignedGE, end);
+
+	EmitJump((data.pc + 4) + (i32)((i16)data.imm << 2));
+
+	cc.bind(end);
+	EmitBranchDelay(data);
+}
+
+void JitX64::SLTI(InstructionData& data) {
+	if (data.rt == 0) return;
+	cc.cmp(r[data.rs], (i32)(i16)data.imm);
+	cc.set(x86::CondCode::kSignedLT, r[data.rt].r8());
+	cc.movzx(r[data.rt], r[data.rt].r8());
+}
+
+void JitX64::SUBU(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(r[data.rd], r[data.rs]);
+	cc.sub(r[data.rd], r[data.rt]);
+}
+
+void JitX64::SRA(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(r[data.rd], r[data.rt]);
+	cc.sar(r[data.rd], data.sa);
+}

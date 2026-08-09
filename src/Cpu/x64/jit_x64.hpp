@@ -34,6 +34,19 @@ namespace Cpu {
 		void SB(InstructionData& data) override;
 		void JR(InstructionData& data) override;
 		void LB(InstructionData& data) override;
+		void SLLV(InstructionData& data) override;
+		void BEQ(InstructionData& data) override;
+		void MFC0(InstructionData& data) override;
+		void AND(InstructionData& data) override;
+		void ADD(InstructionData& data) override;
+		void BGTZ(InstructionData& data) override;
+		void BLEZ(InstructionData& data) override;
+		void LBU(InstructionData& data) override;
+		void JALR(InstructionData& data) override;
+		void BLTZ(InstructionData& data) override;
+		void SLTI(InstructionData& data) override;
+		void SUBU(InstructionData& data) override;
+		void SRA(InstructionData& data) override;
 		
 	private:
 		void FlushRegisters();

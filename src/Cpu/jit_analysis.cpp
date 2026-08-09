@@ -46,6 +46,41 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					break;
 				}
 
+				// SLLV
+				case 0b000100: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::SLLV;
+					break;
+				}
+
+				// AND
+				case 0b100100: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::AND;
+					break;
+				}
+
+				// ADD
+				case 0b100000: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::ADD;
+					break;
+				}
+
+				// SUBU
+				case 0b100011: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::SUBU;
+					break;
+				}
+
+				// SRA
+				case 0b000011: {
+					UseRegisters({data.rt, data.rd});
+					data.ptr = &JitBackend::SRA;
+					break;
+				}
+
 				// --- branches ---
 				// JR
 				case 0b001000: {
@@ -54,6 +89,15 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					data.type = InstructionType::Branch;
 					break;
 				}
+
+				// JALR
+				case 0b001001: {
+					UseRegisters({data.rs, data.rd});
+					data.ptr = &JitBackend::JALR;
+					data.type = InstructionType::Branch;
+					break;
+				}
+
 				default: {
 					error_log("unknown special opcode {:06b} @ {:08x}", data.funct, data.pc);
 					exit(1);
@@ -62,10 +106,30 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 			break;
 		}
 
+		// --- regimm ---
+		case 0b000001: {
+			switch (data.rt) {
+				// BLTZ
+				case 0b00000: {
+					UseRegisters({data.rs}); 
+					data.ptr = &JitBackend::BLTZ; 
+					data.type = InstructionType::Branch;
+					break;
+				}
+
+				default: {
+					error_log("unknown regimm opcode {:05b} @ {:08x}", data.rt, data.pc);
+					exit(1);
+				}
+			}
+			break;	
+		}
+
 		// --- cop0 ---
 		case 0b010000: {
 			switch (data.rs) {
 				case 0b00100: { UseRegisters({data.rt}); data.ptr = &JitBackend::MTC0; break; }
+				case 0b00000: { UseRegisters({data.rt}); data.ptr = &JitBackend::MFC0; break; }
 
 				default: {
 					error_log("unknown cop0 opcode {:05b} @ {:08x}", data.rs, data.pc);
@@ -87,6 +151,8 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		case 0b001100: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ANDI; break; }
 		case 0b101000: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SB; break; }
 		case 0b100000: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LB; break; }
+		case 0b100100: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LBU; break; }
+		case 0b001010: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SLTI; break; }
 
 		// --- branches ---
 		// J
@@ -108,6 +174,30 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		case 0b000101: {
 			UseRegisters({data.rs, data.rt});
 			data.ptr = &JitBackend::BNE;
+			data.type = InstructionType::Branch;
+			break;
+		}
+
+		// BEQ
+		case 0b000100: {
+			UseRegisters({data.rs, data.rt});
+			data.ptr = &JitBackend::BEQ;
+			data.type = InstructionType::Branch;
+			break;
+		}
+
+		// BGTZ
+		case 0b000111: {
+			UseRegisters({data.rs});
+			data.ptr = &JitBackend::BGTZ;
+			data.type = InstructionType::Branch;
+			break;
+		}
+
+		// BLEZ
+		case 0b000110: {
+			UseRegisters({data.rs});
+			data.ptr = &JitBackend::BLEZ;
 			data.type = InstructionType::Branch;
 			break;
 		}
