@@ -39,6 +39,21 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					break;
 				}
 				
+				// ADDU
+				case 0b100001: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::ADDU;
+					break;
+				}
+
+				// --- branches ---
+				// JR
+				case 0b001000: {
+					UseRegisters({data.rs});
+					data.ptr = &JitBackend::JR;
+					data.type = InstructionType::Branch;
+					break;
+				}
 				default: {
 					error_log("unknown special opcode {:06b} @ {:08x}", data.funct, data.pc);
 					exit(1);
@@ -68,11 +83,23 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		case 0b100101: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LHU; break; }
 		case 0b001000: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ADDI; break; }
 		case 0b100011: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LW; break; }
+		case 0b101001: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SH; break; }
+		case 0b001100: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ANDI; break; }
+		case 0b101000: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SB; break; }
+		case 0b100000: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LB; break; }
 
 		// --- branches ---
 		// J
 		case 0b000010: {
 			data.ptr = &JitBackend::J;
+			data.type = InstructionType::Branch;
+			break;
+		}
+
+		// JAL
+		case 0b000011: {
+			UseRegisters({31});
+			data.ptr = &JitBackend::JAL;
 			data.type = InstructionType::Branch;
 			break;
 		}

@@ -27,6 +27,13 @@ namespace Cpu {
 		void ADDI(InstructionData& data) override;
 		void LW(InstructionData& data) override;
 		void SLTU(InstructionData& data) override;
+		void ADDU(InstructionData& data) override;
+		void SH(InstructionData& data) override;
+		void JAL(InstructionData& data) override;
+		void ANDI(InstructionData& data) override;
+		void SB(InstructionData& data) override;
+		void JR(InstructionData& data) override;
+		void LB(InstructionData& data) override;
 		
 	private:
 		void FlushRegisters();

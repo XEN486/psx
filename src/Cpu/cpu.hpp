@@ -153,6 +153,13 @@ namespace Cpu {
 		virtual void ADDI(InstructionData& data) = 0;
 		virtual void LW(InstructionData& data) = 0;
 		virtual void SLTU(InstructionData& data) = 0;
+		virtual void ADDU(InstructionData& data) = 0;
+		virtual void SH(InstructionData& data) = 0;
+		virtual void JAL(InstructionData& data) = 0;
+		virtual void ANDI(InstructionData& data) = 0;
+		virtual void SB(InstructionData& data) = 0;
+		virtual void JR(InstructionData& data) = 0;
+		virtual void LB(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;
