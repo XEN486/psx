@@ -136,6 +136,8 @@ namespace Cpu {
 		virtual void SLL(InstructionData& data) = 0;
 		virtual void ADDIU(InstructionData& data) = 0;
 		virtual void J(InstructionData& data) = 0;
+		virtual void LHU(InstructionData& data) = 0;
+		virtual void OR(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

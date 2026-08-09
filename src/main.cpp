@@ -9,7 +9,9 @@ int main() {
 	cpu.GetMemory().LoadBIOS("roms/scph1001.bin");
 	cpu.Reset();
 
-	cpu.RunOnce();
+	while (true) {
+		cpu.RunOnce();
+	}
 	
 	cpu.Release();
 	return 0;

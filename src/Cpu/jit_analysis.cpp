@@ -12,16 +12,24 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		// special
 		case 0b000000: {
 			switch (data.funct) {
+				// SLL
 				case 0b000000: {
 					// optimize canonical NOP (SLL $0,$0,0)
 					if (data.rt == 0 && data.rd == 0 && data.sa == 0) {
 						data.ptr = &JitBackend::NOP;
 						break;
-					
-						UseRegisters({data.rt, data.rd});
-						data.ptr = &JitBackend::SLL;
-						break;
 					}
+
+					UseRegisters({data.rt, data.rd});
+					data.ptr = &JitBackend::SLL;
+					break;
+				}
+
+				// OR
+				case 0b100101: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::OR;
+					break;
 				}
 				
 				default: {
@@ -37,6 +45,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		case 0b001101: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ORI; break; }
 		case 0b101011: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SW; break; }
 		case 0b001001: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ADDIU; break; }
+		case 0b100101: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LHU; break; }
 
 		// branch
 		case 0b000010: {

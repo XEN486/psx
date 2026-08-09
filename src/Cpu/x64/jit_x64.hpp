@@ -20,6 +20,8 @@ namespace Cpu {
 		void SLL(InstructionData& data) override;
 		void ADDIU(InstructionData& data) override;
 		void J(InstructionData& data) override;
+		void LHU(InstructionData& data) override;
+		void OR(InstructionData& data) override;
 
 	private:
 		void FlushRegisters();

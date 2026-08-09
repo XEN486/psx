@@ -34,3 +34,20 @@ void JitX64::J(InstructionData& data) {
 	EmitJump(((data.pc + 4) & 0xf0000000) | (data.addr << 2));
 	EmitBranchDelay(data);
 }
+
+void JitX64::LHU(InstructionData& data) {
+	cc.mov(temp, r[data.rs]);
+	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
+	if (data.rt == 0) {
+		EmitReadVirtualMemory<u16>(temp.r16(), temp);
+		return;
+	}
+
+	cc.xor_(r[data.rt], r[data.rt]);
+	EmitReadVirtualMemory<u16>(r[data.rt].r16(), temp);
+}
+
+void JitX64::OR(InstructionData& data) {
+	cc.mov(r[data.rd], r[data.rs]);
+	cc.or_(r[data.rd], r[data.rt]);
+}
