@@ -36,7 +36,7 @@ u32 Memory::ReadVirtualMemory32(u32 address) {
 	}
 
 	error_log("32-bit read <- unknown address {:08x}", address);
-	return 0;
+	return 0xffffffff;
 }
 
 void Memory::WriteVirtualMemory32(u32 address, u32 word) {
@@ -79,7 +79,7 @@ u16 Memory::ReadVirtualMemory16(u32 address) {
 	}
 
 	error_log("16-bit read <- unknown address {:08x}", address);
-	return 0;
+	return 0xffff;
 }
 
 void Memory::WriteVirtualMemory16(u32 address, u16 hword) {
@@ -122,7 +122,7 @@ u8 Memory::ReadVirtualMemory8(u32 address) {
 	}
 
 	error_log("8-bit read <- unknown address {:08x}", address);
-	return 0;
+	return 0xff;
 }
 
 void Memory::WriteVirtualMemory8(u32 address, u8 byte) {
