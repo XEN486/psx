@@ -59,7 +59,7 @@ u32 GPU::GetStatus() {
 	}
 
 	r |= dma_request << 25;
-	return r;
+	return 0x5e800000; // hardcode for now
 }
 
 u32 GPU::GetRead() {

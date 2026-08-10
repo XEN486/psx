@@ -21,10 +21,15 @@ static void DrawModeSetting(GP0* gp0) {
 	params.textured_rectangle_y_flip = (word >> 13) & 1;
 }
 
+static void ClearCache(GP0*) {
+	// not implemented
+}
+
 void GP0::DecodeOp(u32 word) {
 	u8 op = (word >> 24) & 0xff;
 	switch (op) {
 		case 0x00: { m_Decoded.operands = 0; m_Decoded.ptr = &NOP; break; }
+		case 0x01: { m_Decoded.operands = 0; m_Decoded.ptr = &ClearCache; break; }
 		case 0xe1: { m_Decoded.operands = 0; m_Decoded.ptr = &DrawModeSetting; break; }
 		
 		default: {

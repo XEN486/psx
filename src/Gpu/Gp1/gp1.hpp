@@ -16,6 +16,9 @@ namespace Gpu {
 		void DmaDirection(u32 word);
 		void Reset(u32 word);
 		void DisplayMode(u32 word);
+		void StartOfDisplayArea(u32 word);
+		void HorizontalDisplayRange(u32 word);
+		void VerticalDisplayRange(u32 word);
 	};
 }
 
