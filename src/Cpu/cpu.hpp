@@ -196,6 +196,9 @@ namespace Cpu {
 		virtual void MFHI(InstructionData& data) = 0;
 		virtual void SLT(InstructionData& data) = 0;
 		virtual void SYSCALL(InstructionData& data) = 0;
+		virtual void MTLO(InstructionData& data) = 0;
+		virtual void MTHI(InstructionData& data) = 0;
+		virtual void RFE(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

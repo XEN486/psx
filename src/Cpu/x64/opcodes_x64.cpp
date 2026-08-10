@@ -49,6 +49,12 @@ static void IMPL_multu(R3000A* r3000a, u32 rs, u32 rt) {
 	r3000a->lo = result & 0xffffffff;
 }
 
+static void IMPL_rfe(R3000A* r3000a) {
+	u8 mode = r3000a->cop0[SR];
+	r3000a->cop0[SR] &= ~(u32)0x3f;
+	r3000a->cop0[SR]|= (mode >> 2); // shift in previous bits
+}
+
 void JitX64::LUI(InstructionData& data) {
 	if (data.rt == 0) return;
 	cc.mov(r[data.rt], (data.imm << 16));
@@ -377,4 +383,20 @@ void JitX64::SYSCALL(InstructionData& data) {
 	node->set_arg(1, ExceptionCause::Syscall);
 	node->set_arg(2, data.pc);
 	node->set_arg(3, data.in_branch_delay);
+}
+
+void JitX64::MTLO(InstructionData& data) {
+	cc.mov(x86::dword_ptr(r3000a, offsetof(R3000A, lo)), r[data.rs]);
+}
+
+void JitX64::MTHI(InstructionData& data) {
+	cc.mov(x86::dword_ptr(r3000a, offsetof(R3000A, hi)), r[data.rs]);
+}
+
+void JitX64::RFE(InstructionData& data) {
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_rfe), FuncSignature::build<void, R3000A*>());
+	node->set_arg(0, m_R3000A);
 }

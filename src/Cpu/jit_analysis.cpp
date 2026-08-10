@@ -123,6 +123,20 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					break;
 				}
 
+				// MTLO
+				case 0b010011: {
+					UseRegisters({data.rs});
+					data.ptr = &JitBackend::MTLO;
+					break;
+				}
+
+				// MTHI
+				case 0b010001: {
+					UseRegisters({data.rs});
+					data.ptr = &JitBackend::MTHI;
+					break;
+				}
+
 				// --- branches ---
 				// JR
 				case 0b001000: {
@@ -188,6 +202,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 			switch (data.rs) {
 				case 0b00100: { UseRegisters({data.rt}); data.ptr = &JitBackend::MTC0; break; }
 				case 0b00000: { UseRegisters({data.rt}); data.ptr = &JitBackend::MFC0; break; }
+				case 0b10000: { data.ptr = &JitBackend::RFE; break; }
 
 				default: {
 					error_log("unknown cop0 opcode {:05b} @ {:08x}", data.rs, data.pc);

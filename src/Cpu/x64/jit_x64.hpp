@@ -56,6 +56,9 @@ namespace Cpu {
 		void MFHI(InstructionData& data) override;
 		void SLT(InstructionData& data) override;
 		void SYSCALL(InstructionData& data) override;
+		void MTLO(InstructionData& data) override;
+		void MTHI(InstructionData& data) override;
+		void RFE(InstructionData& data) override;
 		
 	private:
 		void FlushRegisters();
