@@ -34,6 +34,17 @@ namespace Cpu {
 		EPC = 14,
 		PRID = 15,
 	};
+
+	enum class ExceptionCause : u8 {
+		Interrupt			= 0x0,
+		LoadAddressError	= 0x4,
+		StoreAddressError	= 0x5,
+		Syscall				= 0x8,
+		Break				= 0x9,
+		IllegalInstruction	= 0xa,
+		CoprocessorError	= 0xb,
+		Overflow			= 0xc,
+	};
 	
 	struct R3000A {
 		// 32 GPRs (32-bit)
@@ -52,6 +63,7 @@ namespace Cpu {
 
 		u32 ReadCOP0(u8 reg);
 		void WriteCOP0(u8 reg, u32 val);
+		void Exception(ExceptionCause cause, u32 epc, bool in_delay_slot = false);
 	};
 
 	/// @brief Function pointer to recompiled code.
@@ -86,6 +98,8 @@ namespace Cpu {
 		void (JitBackend::*ptr)(InstructionData&);
 
 		std::shared_ptr<InstructionData> branch_delay;
+		bool in_branch_delay;
+
 		u32 pc;
 		u8 rs;
 		u8 rt;

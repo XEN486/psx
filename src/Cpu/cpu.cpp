@@ -68,3 +68,30 @@ void R3000A::WriteCOP0(u8 reg, u32 word) {
 		cop0[reg] = word;
 	}
 }
+
+void R3000A::Exception(ExceptionCause cause, u32 epc, bool in_delay_slot) {
+	// EPC <- epc
+	cop0[EPC] = epc;
+
+	// CAUSE.ExcCode <- exception cause
+	u8 exc_code = 0b1111 << 2;
+	cop0[CAUSE] = (cop0[CAUSE] & ~exc_code) | ((static_cast<u8>(cause) & 0b1111) << 2);
+
+	// CAUSE.BD <- in branch delay
+	u32 bd = 1UL << 31;
+	cop0[CAUSE] = (cop0[CAUSE] & ~bd) | ((in_delay_slot ? 1 : 0) << 31);
+
+	// exception in delay slot case
+	if (in_delay_slot) {
+		cop0[EPC] -= 4;			// EPC <- branch instruction
+		cop0[TAR] = next_pc;	// TAR <- branch target
+	}
+
+	// previous <- current, and kernel mode and disable interrupts by clearing low bits
+	u8 mode = cop0[SR] & 0x3f;
+	cop0[SR] = (cop0[SR] & ~(u32)0x3f) | ((mode << 2) & 0x3f);
+
+	// next pc <- exception vector
+	bool bev = cop0[SR] & (1 << 22);
+	next_pc = bev ? 0xbfc00180 : 0x80000080;
+}

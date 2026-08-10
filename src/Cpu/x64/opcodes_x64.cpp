@@ -4,6 +4,7 @@ using namespace asmjit;
 
 static u32 WRAP_ReadCOP0(R3000A* r3000a, u8 reg) { return r3000a->ReadCOP0(reg); }
 static void WRAP_WriteCOP0(R3000A* r3000a, u8 reg, u32 val) { r3000a->WriteCOP0(reg, val); }
+static void WRAP_Exception(R3000A* r3000a, ExceptionCause cause, u32 epc, bool in_delay_slot) { r3000a->Exception(cause, epc, in_delay_slot); }
 
 static void IMPL_div(R3000A* r3000a, i32 numerator, i32 denominator) {
 	// division by zero case
@@ -217,7 +218,7 @@ void JitX64::MFC0(InstructionData& data) {
 	// no need to flush and load registers here
 	InvokeNode* node;
 
-	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(&WRAP_WriteCOP0), FuncSignature::build<u32, R3000A*, u8>());
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(&WRAP_ReadCOP0), FuncSignature::build<u32, R3000A*, u8>());
 	node->set_arg(0, r3000a);
 	node->set_arg(1, data.rd);
 	node->set_ret(0, r[data.rt]);
@@ -368,5 +369,12 @@ void JitX64::SLT(InstructionData& data) {
 }
 
 void JitX64::SYSCALL(InstructionData& data) {
-	
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(WRAP_Exception), FuncSignature::build<void, R3000A*, ExceptionCause, u32, bool>());
+	node->set_arg(0, m_R3000A);
+	node->set_arg(1, ExceptionCause::Syscall);
+	node->set_arg(2, data.pc);
+	node->set_arg(3, data.in_branch_delay);
 }
