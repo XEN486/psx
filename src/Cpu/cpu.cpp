@@ -1,4 +1,6 @@
 #include "cpu.hpp"
+#include <fstream>
+
 using namespace Cpu;
 
 CPU::CPU(JitBackend* backend) : m_JitBackend(backend) {
@@ -43,6 +45,49 @@ void CPU::Reset() {
 	memset(&m_R3000A.cop0, 0, 32 * sizeof(u32));
 
 	m_JitBackend->Reset();
+}
+
+void CPU::SideloadExe(std::filesystem::path path) {
+	std::ifstream file;
+	file.open(path, std::ios::binary);
+
+	// run CPU as normal until we reach $800300000
+	while (m_R3000A.pc != 0x80030000) RunOnce();
+
+	u32 initial_pc;
+	u32 initial_r28;
+	u32 exe_ram_addr;
+	u32 exe_size;
+	u32 initial_sp;
+
+	// read fields
+	file.seekg(0x10);
+	file.read(reinterpret_cast<char*>(&initial_pc), 4);
+	file.read(reinterpret_cast<char*>(&initial_r28), 4);
+	file.read(reinterpret_cast<char*>(&exe_ram_addr), 4);
+	file.read(reinterpret_cast<char*>(&exe_size), 4);
+
+	file.seekg(0x30);
+	file.read(reinterpret_cast<char*>(&initial_sp), 4);
+
+	// copy EXE code/data to RAM
+	// ram[exe_ram_addr..(exe_ram_addr+exe_size)] <- file[2048..(2048+exe_size)]
+	file.seekg(2048);
+	file.read(reinterpret_cast<char*>(m_Memory.ram + (exe_ram_addr & 0x1fffffff)), exe_size);
+
+	// set registers
+	m_R3000A.gpr[28] = initial_r28;
+	if (initial_sp) {
+		m_R3000A.gpr[29] = initial_sp;
+		m_R3000A.gpr[30] = initial_sp;
+	}
+
+	// jump to pc
+	m_R3000A.pc = initial_pc;
+	m_JitBackend->InvalidateAll(); // invalidate the whole block cache just in case
+	
+	debug_log("loaded {} ({}KiB -> {:08x})", path.filename().string(), exe_size / KiB, exe_ram_addr);
+	file.close();
 }
 
 void CPU::Release() {

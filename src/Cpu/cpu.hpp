@@ -7,6 +7,7 @@
 #include <asmjit/core.h>
 #include <unordered_map>
 #include <memory>
+#include <filesystem>
 
 namespace Cpu {
 	static constexpr const char* g_RegNames[32] = {
@@ -129,6 +130,11 @@ namespace Cpu {
 		/// @param pc Address to invalidate.
 		void Invalidate(u32 pc);
 
+		/// @brief Invalidates the entire block cache.
+		void InvalidateAll() {
+			m_BlockCache.clear();
+		}
+
 		/// @brief Tries to get a cached block that starts at a specific address, and if it isn't found then compile a new one.
 		/// @param pc Address that the block starts at.
 		/// @return Reference to the compiled block.
@@ -249,6 +255,10 @@ namespace Cpu {
 
 		/// @brief Resets the CPU's state.
 		void Reset();
+		
+		/// @brief Sideloads a PS-EXE.
+		/// @param path Path to the PS-EXE.
+		void SideloadExe(std::filesystem::path path);
 
 		/// @brief Compiles and runs a single JIT block.
 		/// @return Number of instructions inside the JIT block.
