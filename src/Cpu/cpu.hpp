@@ -210,6 +210,7 @@ namespace Cpu {
 		virtual void SRAV(InstructionData& data) = 0;
 		virtual void SRLV(InstructionData& data) = 0;
 		virtual void MULTU(InstructionData& data) = 0;
+		virtual void XOR(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

@@ -64,6 +64,7 @@ namespace Cpu {
 		void SRAV(InstructionData& data) override;
 		void SRLV(InstructionData& data) override;
 		void MULTU(InstructionData& data) override;
+		void XOR(InstructionData& data) override;
 		
 	private:
 		void FlushRegisters();

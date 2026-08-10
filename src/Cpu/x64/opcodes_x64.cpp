@@ -436,3 +436,9 @@ void JitX64::MULTU(InstructionData& data) {
 	node->set_arg(1, r[data.rs]);
 	node->set_arg(2, r[data.rt]);
 }
+
+void JitX64::XOR(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(r[data.rd], r[data.rs]);
+	cc.xor_(r[data.rd], r[data.rt]);
+}

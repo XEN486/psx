@@ -165,6 +165,13 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					break;
 				}
 
+				// XOR
+				case 0b100110: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::XOR;
+					break;
+				}
+
 				// --- branches ---
 				// JR
 				case 0b001000: {
