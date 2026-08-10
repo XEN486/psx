@@ -36,7 +36,7 @@ u32 Memory::ReadVirtualMemory32(u32 address) {
 	}
 
 	error_log("32-bit read <- unknown address {:08x}", address);
-	return 0xffffffff;
+	return 0;
 }
 
 void Memory::WriteVirtualMemory32(u32 address, u32 word) {
@@ -78,8 +78,11 @@ u16 Memory::ReadVirtualMemory16(u32 address) {
 		return *reinterpret_cast<u16*>(bios + index);
 	}
 
+	// SPU
+	if (address >= 0x1f801c00 && address <= 0x1f801e80) return 0;
+
 	error_log("16-bit read <- unknown address {:08x}", address);
-	return 0xffff;
+	return 0;
 }
 
 void Memory::WriteVirtualMemory16(u32 address, u16 hword) {
@@ -97,6 +100,9 @@ void Memory::WriteVirtualMemory16(u32 address, u16 hword) {
 		*reinterpret_cast<u16*>(ram + address) = hword;
 		return;
 	}
+
+	// SPU
+	if (address >= 0x1f801c00 && address <= 0x1f801e80) return;
 
 	error_log("16-bit write {:04x} -> unknown address {:08x}", hword, address);
 }
@@ -121,8 +127,13 @@ u8 Memory::ReadVirtualMemory8(u32 address) {
 		return *reinterpret_cast<u8*>(bios + index);
 	}
 
+	// expansion region 1 (only on 8-bit bus)
+	if (address >= 0x1f000000 && address <= 0x1f7fffff) {
+		return 0xff;
+	}
+
 	error_log("8-bit read <- unknown address {:08x}", address);
-	return 0xff;
+	return 0;
 }
 
 void Memory::WriteVirtualMemory8(u32 address, u8 byte) {
@@ -140,6 +151,9 @@ void Memory::WriteVirtualMemory8(u32 address, u8 byte) {
 		*reinterpret_cast<u8*>(ram + address) = byte;
 		return;
 	}
+
+	// expansion region 1 (only on 8-bit bus)
+	if (address >= 0x1f000000 && address <= 0x1f7fffff) return;
 
 	error_log("8-bit write {:02x} -> unknown address {:08x}", byte, address);
 }
