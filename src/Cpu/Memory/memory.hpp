@@ -4,6 +4,8 @@
 #include "../../utils.hpp"
 #include <filesystem>
 
+namespace Gpu { class GPU; }
+
 namespace Cpu {
 	static constexpr const size_t KiB = 1024;
 	static constexpr const size_t MiB = 1024 * KiB; 
@@ -13,7 +15,8 @@ namespace Cpu {
 	public:
 		/// @brief Initializes and allocates everything necessary for the memory map.
 		/// @param backend Pointer to the JIT backend.
-		void Initialize(JitBackend* backend);
+		/// @param gpu Pointer to the GPU.
+		void Initialize(JitBackend* backend, Gpu::GPU* gpu);
 
 		/// @brief Reads a 32-bit value from the specified address.
 		/// @param address Address to read from.
@@ -57,6 +60,7 @@ namespace Cpu {
 
 	private:
 		JitBackend* m_JitBackend;
+		Gpu::GPU* m_GPU;
 	};
 
 }

@@ -8,8 +8,6 @@ CPU::CPU(JitBackend* backend) : m_JitBackend(backend) {
 		error_log("failed to initialize backend");
 		exit(1);
 	}
-
-	m_Memory.Initialize(m_JitBackend);
 }
 
 size_t CPU::RunOnce() {
@@ -85,7 +83,7 @@ void CPU::SideloadExe(std::filesystem::path path) {
 	// jump to pc
 	m_R3000A.pc = initial_pc;
 	m_JitBackend->InvalidateAll(); // invalidate the whole block cache just in case
-	
+
 	debug_log("loaded {} ({}KiB -> {:08x})", path.filename().string(), exe_size / KiB, exe_ram_addr);
 	file.close();
 }
