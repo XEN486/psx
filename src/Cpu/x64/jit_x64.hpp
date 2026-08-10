@@ -63,6 +63,12 @@ namespace Cpu {
 	private:
 		void FlushRegisters();
 		void LoadRegisters();
+		void Exception(InstructionData& data, ExceptionCause cause);
+
+		// checks for overflow in last instruction
+		// if true, moves the value in `value` to the register `result`.
+		// if false, generates an exception and does not affect `result`.
+		void CheckOverflow(InstructionData& data, asmjit::x86::Gp& result, asmjit::x86::Gp& value);
 
 		template <typename T>
 		void EmitJump(T address);

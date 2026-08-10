@@ -4,7 +4,6 @@ using namespace asmjit;
 
 static u32 WRAP_ReadCOP0(R3000A* r3000a, u8 reg) { return r3000a->ReadCOP0(reg); }
 static void WRAP_WriteCOP0(R3000A* r3000a, u8 reg, u32 val) { r3000a->WriteCOP0(reg, val); }
-static void WRAP_Exception(R3000A* r3000a, ExceptionCause cause, u32 epc, bool in_delay_slot) { r3000a->Exception(cause, epc, in_delay_slot); }
 
 static void IMPL_div(R3000A* r3000a, i32 numerator, i32 denominator) {
 	// division by zero case
@@ -50,7 +49,7 @@ static void IMPL_multu(R3000A* r3000a, u32 rs, u32 rt) {
 }
 
 static void IMPL_rfe(R3000A* r3000a) {
-	u8 mode = r3000a->cop0[SR];
+	u8 mode = r3000a->cop0[SR] & 0x3f;
 	r3000a->cop0[SR] &= ~(u32)0x3f;
 	r3000a->cop0[SR]|= (mode >> 2); // shift in previous bits
 }
@@ -131,9 +130,9 @@ void JitX64::BNE(InstructionData& data) {
 
 void JitX64::ADDI(InstructionData& data) {
 	if (data.rt == 0) return;
-	cc.mov(r[data.rt], r[data.rs]);
-	cc.add(r[data.rt], (i32)(i16)data.imm);
-	// overflow exception
+	cc.mov(temp, r[data.rs]);
+	cc.add(temp, (i32)(i16)data.imm);
+	CheckOverflow(data, r[data.rt], temp);
 }
 
 void JitX64::LW(InstructionData& data) {
@@ -238,9 +237,9 @@ void JitX64::AND(InstructionData& data) {
 
 void JitX64::ADD(InstructionData& data) {
 	if (data.rd == 0) return;
-	cc.mov(r[data.rd], r[data.rs]);
-	cc.add(r[data.rd], r[data.rt]);
-	// overflow exception
+	cc.mov(temp, r[data.rs]);
+	cc.add(temp, r[data.rt]);
+	CheckOverflow(data, r[data.rd], temp);
 }
 
 void JitX64::BGTZ(InstructionData& data) {
@@ -375,14 +374,7 @@ void JitX64::SLT(InstructionData& data) {
 }
 
 void JitX64::SYSCALL(InstructionData& data) {
-	// no need to flush and load registers here
-	InvokeNode* node;
-
-	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(WRAP_Exception), FuncSignature::build<void, R3000A*, ExceptionCause, u32, bool>());
-	node->set_arg(0, m_R3000A);
-	node->set_arg(1, ExceptionCause::Syscall);
-	node->set_arg(2, data.pc);
-	node->set_arg(3, data.in_branch_delay);
+	Exception(data, ExceptionCause::Syscall);
 }
 
 void JitX64::MTLO(InstructionData& data) {
@@ -393,7 +385,7 @@ void JitX64::MTHI(InstructionData& data) {
 	cc.mov(x86::dword_ptr(r3000a, offsetof(R3000A, hi)), r[data.rs]);
 }
 
-void JitX64::RFE(InstructionData& data) {
+void JitX64::RFE(InstructionData&) {
 	// no need to flush and load registers here
 	InvokeNode* node;
 

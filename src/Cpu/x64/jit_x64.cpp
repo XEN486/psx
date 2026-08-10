@@ -4,6 +4,8 @@
 using namespace Cpu;
 using namespace asmjit;
 
+static void WRAP_Exception(R3000A* r3000a, ExceptionCause cause, u32 epc, bool in_delay_slot) { r3000a->Exception(cause, epc, in_delay_slot); }
+
 bool JitX64::InitJit(R3000A* cpu, Memory* memory) {
 	if (!JitBackend::InitJit(cpu, memory)) return false;
 	if (m_CodeHolder.attach(&cc) != Error::kOk) return false;
@@ -59,4 +61,33 @@ void JitX64::LoadRegisters() {
 
 		cc.mov(r[i], x86::dword_ptr(r3000a, offsetof(R3000A, gpr) + (i * sizeof(u32))));
 	}
+}
+
+void JitX64::Exception(InstructionData& data, ExceptionCause cause) {
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(WRAP_Exception), FuncSignature::build<void, R3000A*, ExceptionCause, u32, bool>());
+	node->set_arg(0, m_R3000A);
+	node->set_arg(1, cause);
+	node->set_arg(2, data.pc);
+	node->set_arg(3, data.in_branch_delay);
+}
+
+void JitX64::CheckOverflow(InstructionData& data, asmjit::x86::Gp& result, asmjit::x86::Gp& value) {
+	assert(result.size() == value.size());
+
+	Label overflow = cc.new_label();
+	Label end = cc.new_label();
+
+	cc.j(x86::CondCode::kOverflow, overflow);
+
+	// not overflow case, move value to result
+	cc.mov(result, value);
+	cc.jmp(end);
+
+	// overflow case, do the exception
+	cc.bind(overflow);
+	Exception(data, ExceptionCause::Overflow);
+	cc.bind(end);
 }
