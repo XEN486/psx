@@ -10,7 +10,7 @@ void GPU::Reset() {
 
 u32 GPU::VBusRead(u32 address) {
 	if (address == 0x1f801814) return GetStatus();
-	else return GetRead();
+	else return read;
 }
 
 void GPU::VBusWrite(u32 address, u32 word) {
@@ -60,8 +60,4 @@ u32 GPU::GetStatus() {
 
 	r |= dma_request << 25;
 	return 0x5e800000; // hardcode for now
-}
-
-u32 GPU::GetRead() {
-	return 0;
 }

@@ -125,12 +125,15 @@ namespace Gpu {
 		u32 VBusRead(u32 address);
 		void VBusWrite(u32 address, u32 word);
 
+		GP0& GetGP0() { return m_GP0; }
+		GP1& GetGP1() { return m_GP1; }
+
 	public:
 		GPUParameters params;
+		u32 read;
 
 	private:
 		u32 GetStatus();
-		u32 GetRead();
 
 	private:
 		GP0 m_GP0;

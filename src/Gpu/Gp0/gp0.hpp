@@ -11,6 +11,11 @@ namespace Gpu {
 		size_t operands;	// number of operands
 	};
 
+	enum class GP0PortState {
+		Command,
+		ImageLoad,
+	};
+
 	class GPU;
 	class GP0 {
 	public:
@@ -19,6 +24,8 @@ namespace Gpu {
 
 	public:
 		std::vector<u32> command;
+		GP0PortState port_state;
+		size_t words_left;
 		GPU* gpu;
 	
 	private:
@@ -27,7 +34,6 @@ namespace Gpu {
 
 	private:
 		GP0Command m_Decoded;
-		size_t m_WordsLeft;
 	};
 }
 

@@ -32,15 +32,85 @@ void GP1::VerticalDisplayRange(u32 word) {
 	gpu->params.display_line_end = (word >> 10) & 0x3ff;
 }
 
+void GP1::ResetCommandBuffer(u32) {
+	gpu->GetGP0().command.clear();
+	gpu->GetGP0().words_left = 0;
+	gpu->GetGP0().port_state = GP0PortState::Command;
+}
+
+void GP1::ReadInternalRegister(u32 word) {
+	gpu->params.texture_window_x_mask = word & 0x1f;
+	gpu->params.texture_window_y_mask = (word >> 5) & 0x1f;
+	gpu->params.texture_window_x_offset = (word >> 10) & 0x1f;
+	gpu->params.texture_window_y_offset = (word >> 15) & 0x1f;
+
+	uint8_t index = word & 0xf;
+	switch (index) {
+		// read texture window setting
+		case 0x02: {
+			gpu->read = 0;
+			gpu->read |= (gpu->params.texture_window_x_mask << 0);
+			gpu->read |= (gpu->params.texture_window_y_mask << 5);
+			gpu->read |= (gpu->params.texture_window_x_offset << 10);
+			gpu->read |= (gpu->params.texture_window_y_offset << 15);
+
+			break;
+		}
+
+		// read draw area top left
+		case 0x03: {
+			gpu->read = 0;
+			gpu->read |= (gpu->params.drawing_area_left << 0);
+			gpu->read |= (gpu->params.drawing_area_top << 10);
+
+			break;
+		}
+
+		// read draw area bottom right
+		case 0x04: {
+			gpu->read = 0;
+			gpu->read |= (gpu->params.drawing_area_right << 0);
+			gpu->read |= (gpu->params.drawing_area_bottom << 10);
+
+			break;
+		}
+
+		// read draw area offset
+		case 0x05: {
+			gpu->read = 0;
+			gpu->read |= (gpu->params.drawing_x_offset << 0);
+			gpu->read |= (gpu->params.drawing_y_offset << 11);
+
+			break;
+		}
+
+		// read GPU version
+		case 0x07: {
+			gpu->read = 2;
+			break;
+		}
+
+		// unknown
+		case 0x08: {
+			gpu->read = 0;
+			break;
+		}
+
+		default: break;
+	}
+}
+
 void GP1::Send(u32 word) {
 	u8 op = (word >> 24) & 0xff;
 	switch (op) {
 		case 0x00: { GP1::Reset(word); break; }
+		case 0x01: { GP1::ResetCommandBuffer(word); break; }
 		case 0x04: { GP1::DmaDirection(word); break; }
 		case 0x05: { GP1::StartOfDisplayArea(word); break; }
 		case 0x06: { GP1::HorizontalDisplayRange(word); break; }
 		case 0x07: { GP1::VerticalDisplayRange(word); break; }
 		case 0x08: { GP1::DisplayMode(word); break; }
+		case 0x10: { GP1::ReadInternalRegister(word); break; }
 
 		default: {
 			error_log("GP1({:02x}h) unknown", op);

@@ -19,6 +19,8 @@ namespace Gpu {
 		void StartOfDisplayArea(u32 word);
 		void HorizontalDisplayRange(u32 word);
 		void VerticalDisplayRange(u32 word);
+		void ResetCommandBuffer(u32 word);
+		void ReadInternalRegister(u32 word);
 	};
 }
 
