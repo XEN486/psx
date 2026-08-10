@@ -96,7 +96,6 @@ void JitX64::LHU(InstructionData& data) {
 		return;
 	}
 
-	cc.xor_(r[data.rt], r[data.rt]);
 	EmitReadVirtualMemory<u16>(r[data.rt].r16(), temp);
 	cc.movzx(r[data.rt], r[data.rt].r16());
 }
@@ -391,4 +390,49 @@ void JitX64::RFE(InstructionData&) {
 
 	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_rfe), FuncSignature::build<void, R3000A*>());
 	node->set_arg(0, m_R3000A);
+}
+
+void JitX64::LH(InstructionData& data) {
+	cc.mov(temp, r[data.rs]);
+	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
+	if (data.rt == 0) {
+		EmitReadVirtualMemory<u16>(temp.r16(), temp);
+		return;
+	}
+
+	EmitReadVirtualMemory<u16>(r[data.rt].r16(), temp);
+	cc.movsx(r[data.rt], r[data.rt].r16());
+}
+
+void JitX64::NOR(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(r[data.rd], r[data.rs]);
+	cc.or_(r[data.rd], r[data.rt]);
+	cc.not_(r[data.rd]);
+}
+
+void JitX64::SRAV(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(temp, r[data.rs]);
+	cc.and_(temp, 0b11111);
+	cc.mov(r[data.rd], r[data.rt]);
+	cc.sar(r[data.rd], temp);
+}
+
+void JitX64::SRLV(InstructionData& data) {
+	if (data.rd == 0) return;
+	cc.mov(temp, r[data.rs]);
+	cc.and_(temp, 0b11111);
+	cc.mov(r[data.rd], r[data.rt]);
+	cc.shr(r[data.rd], temp);
+}
+
+void JitX64::MULTU(InstructionData& data) {
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_multu), FuncSignature::build<void, R3000A*, u32, u32>());
+	node->set_arg(0, m_R3000A);
+	node->set_arg(1, r[data.rs]);
+	node->set_arg(2, r[data.rt]);
 }

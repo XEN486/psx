@@ -137,6 +137,34 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					break;
 				}
 
+				// NOR
+				case 0b100111: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::NOR;
+					break;
+				}
+
+				// SRAV
+				case 0b000111: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::SRAV;
+					break;
+				}
+
+				// SRLV
+				case 0b000110: {
+					UseRegisters({data.rs, data.rt, data.rd});
+					data.ptr = &JitBackend::SRLV;
+					break;
+				}
+
+				// MULTU
+				case 0b011001: {
+					UseRegisters({data.rs, data.rt});
+					data.ptr = &JitBackend::MULTU;
+					break;
+				}
+
 				// --- branches ---
 				// JR
 				case 0b001000: {
@@ -227,6 +255,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		case 0b100100: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LBU; break; }
 		case 0b001010: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SLTI; break; }
 		case 0b001011: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SLTIU; break; }
+		case 0b100001: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LH; break; }
 
 		// --- branches ---
 		// J

@@ -199,6 +199,11 @@ namespace Cpu {
 		virtual void MTLO(InstructionData& data) = 0;
 		virtual void MTHI(InstructionData& data) = 0;
 		virtual void RFE(InstructionData& data) = 0;
+		virtual void LH(InstructionData& data) = 0;
+		virtual void NOR(InstructionData& data) = 0;
+		virtual void SRAV(InstructionData& data) = 0;
+		virtual void SRLV(InstructionData& data) = 0;
+		virtual void MULTU(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

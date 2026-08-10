@@ -59,6 +59,11 @@ namespace Cpu {
 		void MTLO(InstructionData& data) override;
 		void MTHI(InstructionData& data) override;
 		void RFE(InstructionData& data) override;
+		void LH(InstructionData& data) override;
+		void NOR(InstructionData& data) override;
+		void SRAV(InstructionData& data) override;
+		void SRLV(InstructionData& data) override;
+		void MULTU(InstructionData& data) override;
 		
 	private:
 		void FlushRegisters();
