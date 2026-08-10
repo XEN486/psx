@@ -63,12 +63,12 @@ void JitX64::LoadRegisters() {
 	}
 }
 
-void JitX64::Exception(InstructionData& data, ExceptionCause cause) {
+void JitX64::EmitException(InstructionData& data, ExceptionCause cause) {
 	// no need to flush and load registers here
 	InvokeNode* node;
 
 	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(WRAP_Exception), FuncSignature::build<void, R3000A*, ExceptionCause, u32, bool>());
-	node->set_arg(0, m_R3000A);
+	node->set_arg(0, r3000a);
 	node->set_arg(1, cause);
 	node->set_arg(2, data.pc);
 	node->set_arg(3, data.in_branch_delay);
@@ -88,6 +88,6 @@ void JitX64::CheckOverflow(InstructionData& data, asmjit::x86::Gp& result, asmji
 
 	// overflow case, do the exception
 	cc.bind(overflow);
-	Exception(data, ExceptionCause::Overflow);
+	EmitException(data, ExceptionCause::Overflow);
 	cc.bind(end);
 }

@@ -21,20 +21,32 @@ namespace Cpu {
 	}
 
 	template <typename Size, typename T>
-	void JitX64::EmitReadVirtualMemory(const asmjit::x86::Gp& ret, T address) {
+	void JitX64::EmitReadVirtualMemory(InstructionData& data, u8 ret_idx, T address, bool sign_extend) {
+		asmjit::x86::Gp& ret = r[ret_idx];
+
 		// TODO: optimize scratchpad/ram to not have call
 		static_assert(std::is_same_v<T, u32> || std::is_same_v<T, asmjit::x86::Gp>);
 		uintptr_t ptr;
 
+		// correct size temp register
+		asmjit::x86::Gp temp_sized;
+
+		asmjit::Label exception = cc.new_label();
+		asmjit::Label end = cc.new_label();
+
 		if constexpr (std::is_same_v<Size, u32>) {
 			ptr = reinterpret_cast<uintptr_t>(WRAP_ReadVirtualMemory32);
-			assert(ret.is_gp32());
+			temp_sized = temp.r32();
+			cc.test(address, 3);
+			cc.jnz(exception);
 		} else if constexpr (std::is_same_v<Size, u16>) {
 			ptr = reinterpret_cast<uintptr_t>(WRAP_ReadVirtualMemory16);
-			assert(ret.is_gp16());
+			temp_sized = temp.r16();
+			cc.test(address, 1);
+			cc.jnz(exception);
 		} else if constexpr (std::is_same_v<Size, u8>) {
 			ptr = reinterpret_cast<uintptr_t>(WRAP_ReadVirtualMemory8);
-			assert(ret.is_gp8());
+			temp_sized = temp.r8();
 		} else {
 			static_assert(false);
 		}
@@ -43,39 +55,65 @@ namespace Cpu {
 		cc.invoke(asmjit::Out(node), ptr, asmjit::FuncSignature::build<Size, Memory*, u32>());
 		node->set_arg(0, m_Memory);
 		node->set_arg(1, address);
-		node->set_ret(0, ret);
+
+		if (ret_idx == 0) {
+			node->set_ret(0, temp_sized);
+		} else if constexpr (std::is_same_v<Size, u32>) {
+			node->set_ret(0, ret);
+		} else {
+			node->set_ret(0, temp_sized);
+			if (sign_extend) cc.movsx(ret, temp_sized);
+			else cc.movzx(ret, temp_sized);
+		}
+
+		cc.jmp(end);
+
+		cc.bind(exception);
+		EmitException(data, ExceptionCause::LoadAddressError);
+		cc.bind(end);
 	}
 
 	template <typename Size, typename T>
-	void JitX64::EmitWriteVirtualMemory(T address, const asmjit::x86::Gp& value) {
+	void JitX64::EmitWriteVirtualMemory(InstructionData& data, T address, u8 value_idx) {
 		// dont try write when cache is isolated
 		asmjit::Label end = cc.new_label();
 		cc.test(asmjit::x86::dword_ptr(r3000a, offsetof(R3000A, cop0[SR])), 0x10000); // sr.16 == ISc (isolate cache)
 		cc.jnz(end);
 
-		// TODO: optimize scratchpad/rdram to not have call
+		// TODO: optimize scratchpad/ram to not have call
 		static_assert(std::is_same_v<T, u32> || std::is_same_v<T, asmjit::x86::Gp>);
 		uintptr_t ptr;
 
+		// correct size value register
+		asmjit::x86::Gp value_sized;
+		asmjit::Label exception = cc.new_label();
+		
 		if constexpr (std::is_same_v<Size, u32>) {
 			ptr = reinterpret_cast<uintptr_t>(WRAP_WriteVirtualMemory32);
-			assert(value.is_gp32());
+			value_sized = r[value_idx];
+			cc.test(address, 3);
+			cc.jnz(exception);
 		} else if constexpr (std::is_same_v<Size, u16>) {
 			ptr = reinterpret_cast<uintptr_t>(WRAP_WriteVirtualMemory16);
-			assert(value.is_gp16());
+			value_sized = r[value_idx].r16();
+			cc.test(address, 1);
+			cc.jnz(exception);
 		} else if constexpr (std::is_same_v<Size, u8>) {
 			ptr = reinterpret_cast<uintptr_t>(WRAP_WriteVirtualMemory8);
-			assert(value.is_gp8());
+			value_sized = r[value_idx].r8();
 		} else {
 			static_assert(false);
 		}
-
+		
 		asmjit::InvokeNode* node;
 		cc.invoke(asmjit::Out(node), ptr, asmjit::FuncSignature::build<void, Memory*, u32, Size>());
 		node->set_arg(0, m_Memory);
 		node->set_arg(1, address);
-		node->set_arg(2, value);
+		node->set_arg(2, value_sized);
+		cc.jmp(end);
 
+		cc.bind(exception);
+		EmitException(data, ExceptionCause::StoreAddressError);
 		cc.bind(end);
 	}
 }

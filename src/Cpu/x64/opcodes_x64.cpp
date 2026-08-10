@@ -66,9 +66,8 @@ void JitX64::ORI(InstructionData& data) {
 }
 
 void JitX64::SW(InstructionData& data) {
-	cc.mov(temp, r[data.rs]);
-	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
-	EmitWriteVirtualMemory<u32>(temp, r[data.rt]);
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+	EmitWriteVirtualMemory<u32>(data, temp, data.rt);
 }
 
 void JitX64::SLL(InstructionData& data) {
@@ -79,8 +78,7 @@ void JitX64::SLL(InstructionData& data) {
 
 void JitX64::ADDIU(InstructionData& data) {
 	if (data.rt == 0) return;
-	cc.mov(r[data.rt], r[data.rs]);
-	cc.add(r[data.rt], (i32)(i16)data.imm);
+	cc.lea(r[data.rt], x86::ptr(r[data.rs], (i32)(i16)data.imm));
 }
 
 void JitX64::J(InstructionData& data) {
@@ -89,21 +87,15 @@ void JitX64::J(InstructionData& data) {
 }
 
 void JitX64::LHU(InstructionData& data) {
-	cc.mov(temp, r[data.rs]);
-	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
-	if (data.rt == 0) {
-		EmitReadVirtualMemory<u16>(temp.r16(), temp);
-		return;
-	}
-
-	EmitReadVirtualMemory<u16>(r[data.rt].r16(), temp);
-	cc.movzx(r[data.rt], r[data.rt].r16());
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+	EmitReadVirtualMemory<u16>(data, data.rt, temp, false);
 }
 
 void JitX64::OR(InstructionData& data) {
 	if (data.rd == 0) return;
-	cc.mov(r[data.rd], r[data.rs]);
-	cc.or_(r[data.rd], r[data.rt]);
+	cc.mov(temp, r[data.rs]);
+	cc.or_(temp, r[data.rt]);
+	cc.mov(r[data.rd], temp);
 }
 
 void JitX64::MTC0(InstructionData& data) {
@@ -128,21 +120,14 @@ void JitX64::BNE(InstructionData& data) {
 }
 
 void JitX64::ADDI(InstructionData& data) {
-	if (data.rt == 0) return;
 	cc.mov(temp, r[data.rs]);
 	cc.add(temp, (i32)(i16)data.imm);
-	CheckOverflow(data, r[data.rt], temp);
+	CheckOverflow(data, (data.rt == 0) ? temp : r[data.rt], temp);
 }
 
 void JitX64::LW(InstructionData& data) {
-	cc.mov(temp, r[data.rs]);
-	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
-	if (data.rt == 0) {
-		EmitReadVirtualMemory<u32>(temp, temp);
-		return;
-	}
-
-	EmitReadVirtualMemory<u32>(r[data.rt], temp);
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+	EmitReadVirtualMemory<u32>(data, data.rt, temp, false);
 }
 
 void JitX64::SLTU(InstructionData& data) {
@@ -154,14 +139,12 @@ void JitX64::SLTU(InstructionData& data) {
 
 void JitX64::ADDU(InstructionData& data) {
 	if (data.rd == 0) return;
-	cc.mov(r[data.rd], r[data.rs]);
-	cc.add(r[data.rd], r[data.rt]);
+	cc.lea(r[data.rd], x86::ptr(r[data.rs], r[data.rt]));
 }
 
 void JitX64::SH(InstructionData& data) {
-	cc.mov(temp, r[data.rs]);
-	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
-	EmitWriteVirtualMemory<u16>(temp, r[data.rt].r16());
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+	EmitWriteVirtualMemory<u16>(data, temp, data.rt);
 }
 
 void JitX64::JAL(InstructionData& data) {
@@ -177,9 +160,8 @@ void JitX64::ANDI(InstructionData& data) {
 }
 
 void JitX64::SB(InstructionData& data) {
-	cc.mov(temp, r[data.rs]);
-	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
-	EmitWriteVirtualMemory<u8>(temp, r[data.rt].r8());
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+	EmitWriteVirtualMemory<u8>(data, temp, data.rt);
 }
 
 void JitX64::JR(InstructionData& data) {
@@ -188,15 +170,8 @@ void JitX64::JR(InstructionData& data) {
 }
 
 void JitX64::LB(InstructionData& data) {
-	cc.mov(temp, r[data.rs]);
-	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
-	if (data.rt == 0) {
-		EmitReadVirtualMemory<u8>(temp.r8(), temp);
-		return;
-	}
-
-	EmitReadVirtualMemory<u8>(r[data.rt].r8(), temp);
-	cc.movsx(r[data.rt], r[data.rt].r8());
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+	EmitReadVirtualMemory<u8>(data, data.rt, temp, true);
 }
 
 void JitX64::SLLV(InstructionData& data) {
@@ -230,15 +205,15 @@ void JitX64::MFC0(InstructionData& data) {
 
 void JitX64::AND(InstructionData& data) {
 	if (data.rd == 0) return;
-	cc.mov(r[data.rd], r[data.rs]);
-	cc.and_(r[data.rd], r[data.rt]);
+	cc.mov(temp, r[data.rs]);
+	cc.and_(temp, r[data.rt]);
+	cc.mov(r[data.rd], temp);
 }
 
 void JitX64::ADD(InstructionData& data) {
-	if (data.rd == 0) return;
 	cc.mov(temp, r[data.rs]);
 	cc.add(temp, r[data.rt]);
-	CheckOverflow(data, r[data.rd], temp);
+	CheckOverflow(data, (data.rd == 0) ? temp : r[data.rd], temp);
 }
 
 void JitX64::BGTZ(InstructionData& data) {
@@ -264,15 +239,8 @@ void JitX64::BLEZ(InstructionData& data) {
 }
 
 void JitX64::LBU(InstructionData& data) {
-	cc.mov(temp, r[data.rs]);
-	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
-	if (data.rt == 0) {
-		EmitReadVirtualMemory<u8>(temp.r8(), temp);
-		return;
-	}
-
-	EmitReadVirtualMemory<u8>(r[data.rt].r8(), temp);
-	cc.movzx(r[data.rt], r[data.rt].r8());
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+	EmitReadVirtualMemory<u8>(data, data.rt, temp, false);
 }
 
 void JitX64::JALR(InstructionData& data) {
@@ -301,8 +269,9 @@ void JitX64::SLTI(InstructionData& data) {
 
 void JitX64::SUBU(InstructionData& data) {
 	if (data.rd == 0) return;
-	cc.mov(r[data.rd], r[data.rs]);
-	cc.sub(r[data.rd], r[data.rt]);
+	cc.mov(temp, r[data.rs]);
+	cc.sub(temp, r[data.rt]);
+	cc.mov(r[data.rd], temp);
 }
 
 void JitX64::SRA(InstructionData& data) {
@@ -373,7 +342,7 @@ void JitX64::SLT(InstructionData& data) {
 }
 
 void JitX64::SYSCALL(InstructionData& data) {
-	Exception(data, ExceptionCause::Syscall);
+	EmitException(data, ExceptionCause::Syscall);
 }
 
 void JitX64::MTLO(InstructionData& data) {
@@ -393,22 +362,16 @@ void JitX64::RFE(InstructionData&) {
 }
 
 void JitX64::LH(InstructionData& data) {
-	cc.mov(temp, r[data.rs]);
-	if (data.imm) cc.add(temp, (i32)(i16)data.imm);
-	if (data.rt == 0) {
-		EmitReadVirtualMemory<u16>(temp.r16(), temp);
-		return;
-	}
-
-	EmitReadVirtualMemory<u16>(r[data.rt].r16(), temp);
-	cc.movsx(r[data.rt], r[data.rt].r16());
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+	EmitReadVirtualMemory<u16>(data, data.rt, temp, true);
 }
 
 void JitX64::NOR(InstructionData& data) {
 	if (data.rd == 0) return;
-	cc.mov(r[data.rd], r[data.rs]);
-	cc.or_(r[data.rd], r[data.rt]);
-	cc.not_(r[data.rd]);
+	cc.mov(temp, r[data.rs]);
+	cc.or_(temp, r[data.rt]);
+	cc.not_(temp);
+	cc.mov(r[data.rd], temp);
 }
 
 void JitX64::SRAV(InstructionData& data) {
@@ -439,6 +402,29 @@ void JitX64::MULTU(InstructionData& data) {
 
 void JitX64::XOR(InstructionData& data) {
 	if (data.rd == 0) return;
-	cc.mov(r[data.rd], r[data.rs]);
-	cc.xor_(r[data.rd], r[data.rt]);
+	cc.mov(temp, r[data.rs]);
+	cc.xor_(temp, r[data.rt]);
+	cc.mov(r[data.rd], temp);
+}
+
+void JitX64::XORI(InstructionData& data) {
+	if (data.rt == 0) return;
+	cc.mov(r[data.rt], r[data.rs]);
+	cc.xor_(r[data.rt], data.imm);
+}
+
+void JitX64::MULT(InstructionData& data) {
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_mult), FuncSignature::build<void, R3000A*, i32, i32>());
+	node->set_arg(0, m_R3000A);
+	node->set_arg(1, r[data.rs]);
+	node->set_arg(2, r[data.rt]);
+}
+
+void JitX64::SUB(InstructionData& data) {
+	cc.mov(temp, r[data.rs]);
+	cc.sub(temp, r[data.rt]);
+	CheckOverflow(data, (data.rd == 0) ? temp : r[data.rd], temp);
 }

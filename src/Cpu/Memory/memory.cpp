@@ -24,7 +24,7 @@ u32 Memory::ReadVirtualMemory32(u32 address) {
 	}
 
 	// virtual -> physical
-	address &= 0x1fffffff;
+	address = VirtualToPhysical(address);
 
 	// RAM
 	if (address < 2 * MiB) {
@@ -54,7 +54,7 @@ void Memory::WriteVirtualMemory32(u32 address, u32 word) {
 	}
 
 	// virtual -> physical
-	address &= 0x1fffffff;
+	address = VirtualToPhysical(address);
 
 	// RAM
 	if (address < 2 * MiB) {
@@ -78,7 +78,7 @@ u16 Memory::ReadVirtualMemory16(u32 address) {
 	}
 
 	// virtual -> physical
-	address &= 0x1fffffff;
+	address = VirtualToPhysical(address);
 
 	// RAM
 	if (address < 2 * MiB) {
@@ -106,7 +106,7 @@ void Memory::WriteVirtualMemory16(u32 address, u16 hword) {
 	}
 
 	// virtual -> physical
-	address &= 0x1fffffff;
+	address = VirtualToPhysical(address);
 
 	// RAM
 	if (address < 2 * MiB) {
@@ -127,7 +127,7 @@ u8 Memory::ReadVirtualMemory8(u32 address) {
 	}
 
 	// virtual -> physical
-	address &= 0x1fffffff;
+	address = VirtualToPhysical(address);
 
 	// RAM
 	if (address < 2 * MiB) {
@@ -157,7 +157,7 @@ void Memory::WriteVirtualMemory8(u32 address, u8 byte) {
 	}
 
 	// virtual -> physical
-	address &= 0x1fffffff;
+	address = VirtualToPhysical(address);
 
 	// RAM
 	if (address < 2 * MiB) {

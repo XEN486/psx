@@ -8,11 +8,11 @@ using namespace asmjit;
 bool JitBackend::InitJit(R3000A* cpu, Memory* memory) {
 	m_Memory = memory;
 	m_R3000A = cpu;
-	m_Logger.set_file(fopen("asmjit.log", "w"));
 
 	Error err = m_CodeHolder.init(m_Runtime.environment(), m_Runtime.cpu_features());
 
 #ifdef ENABLE_ASMJIT_LOGGING
+	m_Logger.set_file(fopen("asmjit.log", "w"));
 	m_CodeHolder.set_logger(&m_Logger);
 #endif
 

@@ -211,6 +211,9 @@ namespace Cpu {
 		virtual void SRLV(InstructionData& data) = 0;
 		virtual void MULTU(InstructionData& data) = 0;
 		virtual void XOR(InstructionData& data) = 0;
+		virtual void XORI(InstructionData& data) = 0;
+		virtual void MULT(InstructionData& data) = 0;
+		virtual void SUB(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

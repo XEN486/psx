@@ -65,11 +65,14 @@ namespace Cpu {
 		void SRLV(InstructionData& data) override;
 		void MULTU(InstructionData& data) override;
 		void XOR(InstructionData& data) override;
-		
+		void XORI(InstructionData& data) override;
+		void MULT(InstructionData& data) override;
+		void SUB(InstructionData& data) override;
+
 	private:
 		void FlushRegisters();
 		void LoadRegisters();
-		void Exception(InstructionData& data, ExceptionCause cause);
+		void EmitException(InstructionData& data, ExceptionCause cause);
 
 		// checks for overflow in last instruction
 		// if true, moves the value in `value` to the register `result`.
@@ -80,10 +83,10 @@ namespace Cpu {
 		void EmitJump(T address);
 
 		template <typename Size, typename T>
-		void EmitReadVirtualMemory(const asmjit::x86::Gp& ret, T address);
+		void EmitReadVirtualMemory(InstructionData& data, u8 ret_idx, T address, bool sign_extend);
 
 		template <typename Size, typename T>
-		void EmitWriteVirtualMemory(T address, const asmjit::x86::Gp& value);
+		void EmitWriteVirtualMemory(InstructionData& data, T address, u8 value_idx);
 
 	private:
 		asmjit::x86::Compiler cc;

@@ -13,7 +13,7 @@ int main() {
 	cpu.GetMemory().LoadBIOS("roms/scph1001.bin");
 	
 	cpu.Reset();
-	//cpu.SideloadExe("roms/psxtest_cpu.exe");
+	cpu.SideloadExe("roms/psxtest_cpu.exe");
 
 	while (true) {
 		cpu.RunOnce();
