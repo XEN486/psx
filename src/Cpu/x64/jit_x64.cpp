@@ -38,12 +38,12 @@ void JitX64::EmitBeginBlock() {
 }
 
 void JitX64::EmitEndBlock() {
-	FlushRegisters();
+	EmitEpilogue();
 	cc.end_func();
 	cc.finalize();
 }
 
-void JitX64::FlushRegisters() {
+void JitX64::EmitFlushRegisters() {
 	for (u8 i = 1; i < 32; i++) {
 		if (!m_UsedRegisters[i]) continue;
 		//m_UsedRegisters[i] = false;
@@ -51,7 +51,7 @@ void JitX64::FlushRegisters() {
 	}
 }
 
-void JitX64::LoadRegisters() {
+void JitX64::EmitLoadRegisters() {
 	for (u8 i = 0; i < 32; i++) {
 		if (!m_UsedRegisters[i]) continue;
 		if (i == 0) {
@@ -89,8 +89,13 @@ void JitX64::CheckOverflow(InstructionData& data, asmjit::x86::Gp& result, asmji
 	// overflow case, do the exception
 	cc.bind(overflow);
 
-	// TODO: this will only work when the block ends after the exception
 	EmitException(data, ExceptionCause::Overflow);
+	EmitEpilogue();
+	cc.ret();
 
 	cc.bind(end);
+}
+
+void JitX64::EmitEpilogue() {
+	EmitFlushRegisters();
 }

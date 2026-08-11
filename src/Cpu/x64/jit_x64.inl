@@ -70,6 +70,9 @@ namespace Cpu {
 
 		cc.bind(exception);
 		EmitException(data, ExceptionCause::LoadAddressError);
+		EmitEpilogue();
+		cc.ret();
+
 		cc.bind(end);
 	}
 
@@ -114,6 +117,9 @@ namespace Cpu {
 
 		cc.bind(exception);
 		EmitException(data, ExceptionCause::StoreAddressError);
+		EmitEpilogue();
+		cc.ret();
+		
 		cc.bind(end);
 	}
 }

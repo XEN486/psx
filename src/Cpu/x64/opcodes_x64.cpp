@@ -233,9 +233,9 @@ void JitX64::SH(InstructionData& data) {
 }
 
 void JitX64::JAL(InstructionData& data) {
-	cc.mov(r[31], data.pc + 8);
 	EmitJump(((data.pc + 4) & 0xf0000000) | (data.addr << 2));
 	EmitBranchDelay(data);
+	cc.mov(r[31], data.pc + 8);
 }
 
 void JitX64::ANDI(InstructionData& data) {
@@ -330,8 +330,8 @@ void JitX64::LBU(InstructionData& data) {
 
 void JitX64::JALR(InstructionData& data) {
 	EmitJump(r[data.rs]);
-	if (data.rd) cc.mov(r[data.rd], data.pc + 8);
 	EmitBranchDelay(data);
+	if (data.rd) cc.mov(r[data.rd], data.pc + 8);
 }
 
 void JitX64::BLTZ(InstructionData& data) {

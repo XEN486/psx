@@ -76,9 +76,10 @@ namespace Cpu {
 		void BGEZAL(InstructionData& data) override;
 
 	private:
-		void FlushRegisters();
-		void LoadRegisters();
+		void EmitFlushRegisters();
+		void EmitLoadRegisters();
 		void EmitException(InstructionData& data, ExceptionCause cause);
+		void EmitEpilogue();
 
 		// checks for overflow in last instruction
 		// if true, moves the value in `value` to the register `result`.
