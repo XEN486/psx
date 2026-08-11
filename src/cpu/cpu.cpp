@@ -18,6 +18,11 @@ size_t CPU::RunOnce() {
 	block.fn();
 	m_R3000A.pc = m_R3000A.next_pc;
 
+	// check alignment
+	if ((m_R3000A.pc & 3) != 0) {
+		m_R3000A.Exception(ExceptionCause::LoadAddressError, m_R3000A.pc);
+	}
+
 	if ((m_R3000A.pc == 0xa0 && m_R3000A.gpr[9] == 0x3c) || (m_R3000A.pc == 0xb0 && m_R3000A.gpr[9] == 0x3d)) {
 		std::print("{}", (char)(m_R3000A.gpr[4] & 0xff));
 	}
