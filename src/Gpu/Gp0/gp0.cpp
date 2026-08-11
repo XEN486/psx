@@ -2,50 +2,61 @@
 using namespace Gpu;
 
 void GP0::Reset() {
-	port_state = GP0PortState::Command;
-	words_left = 0;
-	command.clear();
+	m_PortState = GP0PortState::Command;
+	m_WordsLeft = 0;
+	m_Command.clear();
 }
 
 void GP0::Send(u32 word) {
-	if (port_state == GP0PortState::ImageLoad) {
-		// TODO: process and send to vram
-		words_left--;
+	if (m_PortState == GP0PortState::ImageLoad) {
+		i16 image_x = m_ImageLoadOptions.pos.x + (m_ImageLoadOptions.current_word % m_ImageLoadOptions.width);
+		i16 image_y = m_ImageLoadOptions.pos.y + (m_ImageLoadOptions.current_word / m_ImageLoadOptions.width);
 
-		if (words_left == 0) {
-			port_state = GP0PortState::Command;
+		u16 pixel1 = word & 0xffff;
+		u16 pixel2 = (word >> 16) & 0xffff;
+
+		m_ImageLoadOptions.current_word += 2;
+
+		m_GPU->GetRenderer().DrawPixel(Position(image_x, image_y), Color(pixel1));
+		if (image_x + 1 < m_ImageLoadOptions.width + m_ImageLoadOptions.pos.x) {
+			m_GPU->GetRenderer().DrawPixel(Position(image_x + 1, image_y), Color(pixel2));
+		}
+
+		m_WordsLeft--;
+		if (m_WordsLeft == 0) {
+			m_PortState = GP0PortState::Command;
 		}
 
 		return;
 	}
 
 	// start a new command
-	if (command.empty()) {
-		command.push_back(word);
+	if (m_Command.empty()) {
+		m_Command.push_back(word);
 
 		DecodeOp(word);
-		words_left = m_Decoded.operands;
+		m_WordsLeft = m_Decoded.operands;
 
 		// execute now if there are no operands
-		if (words_left == 0) {
+		if (m_WordsLeft == 0) {
 			Execute();
-			command.clear();
+			m_Command.clear();
 		}
 
 		return;
 	}
 
 	// push back data
-	command.push_back(word);
-	words_left--;
+	m_Command.push_back(word);
+	m_WordsLeft--;
 
 	// execute if no more words are left to send
-	if (words_left == 0) {
+	if (m_WordsLeft == 0) {
 		Execute();
-		command.clear();
+		m_Command.clear();
 	}
 }
 
 void GP0::Execute() {
-	m_Decoded.ptr(this);
+	(this->*(m_Decoded.ptr))();
 }

@@ -1,6 +1,7 @@
 #ifndef GPU_GPU_HPP
 #define GPU_GPU_HPP
 
+#include "Renderer/renderer.hpp"
 #include "Gp0/gp0.hpp"
 #include "Gp1/gp1.hpp"
 
@@ -121,18 +122,27 @@ namespace Gpu {
 
 	class GPU {
 	public:
+		GPU(IRenderer* renderer) : m_Renderer(renderer) {
+			m_Renderer->m_Params = &params;
+			m_GP0.m_GPU = this;
+			m_GP1.m_GPU = this;
+		}
+
 		void Reset();
+		void Tick(u64 cycles);
 
 		// CPU <-> GPU memory-mapped bus (32-bit only)
 		u32 VBusRead(u32 address);
 		void VBusWrite(u32 address, u32 word);
 
+		GPUParameters& GetParams() { return params; }
+		u32& GetRead() { return read; }
+
 		GP0& GetGP0() { return m_GP0; }
 		GP1& GetGP1() { return m_GP1; }
+		IRenderer& GetRenderer() { return *m_Renderer; }
 
 	public:
-		GPUParameters params;
-		u32 read;
 
 	private:
 		u32 GetStatus();
@@ -140,6 +150,14 @@ namespace Gpu {
 	private:
 		GP0 m_GP0;
 		GP1 m_GP1;
+		IRenderer* m_Renderer;
+
+		bool m_VBlank = false;
+		u64 m_DotClock = 0;
+		u32 m_Scanline = 0;
+
+		GPUParameters params;
+		u32 read;
 	};
 }
 

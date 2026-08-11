@@ -9,9 +9,6 @@ namespace Gpu {
 	public:
 		void Send(u32 word);
 
-	public:
-		GPU* gpu;
-
 	private:
 		void DmaDirection(u32 word);
 		void Reset(u32 word);
@@ -23,6 +20,10 @@ namespace Gpu {
 		void ReadInternalRegister(u32 word);
 		void DisplayEnable(u32 word);
 		void AcknowledgeIRQ(u32 word);
+
+	private:
+		GPU* m_GPU;
+		friend class GPU;
 	};
 }
 

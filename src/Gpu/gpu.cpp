@@ -2,10 +2,7 @@
 using namespace Gpu;
 
 void GPU::Reset() {
-	m_GP0.Reset();
-	
-	m_GP0.gpu = this;
-	m_GP1.gpu = this;
+	m_GP1.Reset(0);
 }
 
 u32 GPU::VBusRead(u32 address) {
@@ -32,7 +29,7 @@ u32 GPU::GetStatus() {
 	// bit 14 not supported
 	r |= params.texture_disable << 15;
 	r |= params.horizontal_resolution.GetStatus();
-	//r |= static_cast<u8>(params.vertical_resolution) << 19;
+	r |= static_cast<u8>(params.vertical_resolution) << 19;
 	r |= static_cast<u8>(params.video_mode) << 20;
 	r |= static_cast<u8>(params.display_depth) << 21;
 	r |= params.interlaced << 22;
@@ -48,7 +45,7 @@ u32 GPU::GetStatus() {
 	r |= 1 << 28;
 
 	r |= static_cast<u8>(params.dma_direction) << 29;
-	//r |= (!m_VBlank && params.even) << 31;
+	r |= (!m_VBlank && params.even) << 31;
 
 	bool dma_request = 0;
 	switch (params.dma_direction) {
@@ -59,5 +56,44 @@ u32 GPU::GetStatus() {
 	}
 
 	r |= dma_request << 25;
-	return 0x5e800000; // hardcode for now
+	return r;
+}
+
+void GPU::Tick(u64 cycles) { 	
+	u32 dots_per_line = (params.video_mode == VideoMode::PAL) ? 3406 : 3413; 	
+	u32 lines_per_frame = (params.video_mode == VideoMode::PAL) ? 314 : 263; 	
+	u32 vblank_start = (params.video_mode == VideoMode::PAL) ? 256 : 240;  	
+
+	m_DotClock += cycles;  	
+
+	u64 lines_passed = m_DotClock / dots_per_line;
+	m_DotClock %= dots_per_line;
+
+	if (lines_passed > 0) {
+		if (params.vertical_resolution == VerticalResolution::Y240) {
+			if (lines_passed % 2 != 0) {
+				params.even = !params.even;
+			}
+		}
+		m_Scanline += lines_passed;
+	}
+
+	if (m_Scanline >= lines_per_frame) { 		
+		if (params.vertical_resolution == VerticalResolution::Y480) {
+			u32 frames_passed = m_Scanline / lines_per_frame;
+			if (frames_passed % 2 != 0) {
+				params.even = !params.even;
+			}
+		} 		
+		m_Scanline %= lines_per_frame; 	
+	}
+	
+	if (m_Scanline >= vblank_start && !m_VBlank) { 		
+		m_Renderer->SetFrameReady();  		
+		m_VBlank = true;
+	}  	
+
+	if (m_Scanline < vblank_start && m_Scanline < lines_per_frame) {
+		m_VBlank = false;
+	}
 }
