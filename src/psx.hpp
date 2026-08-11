@@ -1,9 +1,9 @@
 #ifndef PSX_HPP
 #define PSX_HPP
 
+#include "Interrupt/interrupt.hpp"
 #include "Gpu/gpu.hpp"
 #include "Cpu/cpu.hpp"
-#include "Cpu/x64/jit_x64.hpp"
 #include "Dma/dma.hpp"
 #include "Dma/otc.hpp"
 
@@ -16,6 +16,7 @@ public:
 	void Release();
 
 private:
+	Interrupt::INTC* m_INTC;
 	Gpu::GPU* m_GPU;
 	Cpu::CPU* m_CPU;
 	Dma::DMA* m_DMA;

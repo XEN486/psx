@@ -1,4 +1,5 @@
 #include "gpu.hpp"
+#include "../Interrupt/interrupt.hpp"
 using namespace Gpu;
 
 void GPU::Reset() {
@@ -88,9 +89,10 @@ void GPU::Tick(u64 cycles) {
 		m_Scanline %= lines_per_frame; 	
 	}
 	
-	if (m_Scanline >= vblank_start && !m_VBlank) { 		
+	if (m_Scanline >= vblank_start && !m_VBlank) {
 		m_Renderer->SetFrameReady();  		
 		m_VBlank = true;
+		m_INTC->Interrupt(Interrupt::IRQ::VBlank);
 	}  	
 
 	if (m_Scanline < vblank_start && m_Scanline < lines_per_frame) {

@@ -29,6 +29,12 @@ size_t CPU::RunOnce() {
 	// assume 1 instruction = 1 clock cycle.
 	//m_R3000A.cop0.count += (u32)block.instructions;
 
+	// check for interrupts
+	// EPC = beginning of the new block
+	if ((m_R3000A.cop0[SR] & 1) && (m_R3000A.cop0[CAUSE] & m_R3000A.cop0[SR] & 0xff00)) {
+		m_R3000A.Exception(ExceptionCause::Interrupt, m_R3000A.pc);
+	}
+
 	return block.instructions;
 }
 

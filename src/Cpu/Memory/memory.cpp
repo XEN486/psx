@@ -2,16 +2,18 @@
 #include "../cpu.hpp"
 #include "../../Gpu/gpu.hpp"
 #include "../../Dma/dma.hpp"
+#include "../../Interrupt/interrupt.hpp"
 
 #include <fstream>
 using namespace Cpu;
 
 #define IN_SCRATCHPAD(address) ((address >= 0x1f800000 && address <= 0x1f8003ff) || (address >= 0x9f800000 && address <= 0x9f8003ff))
 
-void Memory::Initialize(JitBackend* backend, Gpu::GPU* gpu, Dma::DMA* dma) {
+void Memory::Initialize(JitBackend* backend, Gpu::GPU* gpu, Dma::DMA* dma, Interrupt::INTC* intc) {
 	m_JitBackend = backend;
 	m_GPU = gpu;
 	m_DMA = dma;
+	m_INTC = intc;
 
 	// allocate memory for stuff on CPU bus
 	ram			= static_cast<u8*>(malloc(2 * MiB));
@@ -49,7 +51,12 @@ u32 Memory::ReadVirtualMemory32(u32 address) {
 		return m_DMA->Read(address);
 	}
 
+	// timer stub
 	if (address == 0x1f801110) return 0xffffffff;
+
+	// INTC
+	if (address == 0x1f801070) return m_INTC->GetSTAT();
+	if (address == 0x1f801074) return m_INTC->GetMASK();
 
 	error_log("32-bit read <- unknown address {:08x}", address);
 	return 0;
@@ -82,6 +89,10 @@ void Memory::WriteVirtualMemory32(u32 address, u32 word) {
 		m_DMA->Write(address, word);
 		return;
 	}
+
+	// INTC
+	if (address == 0x1f801070) return m_INTC->SetSTAT(word);
+	if (address == 0x1f801074) return m_INTC->SetMASK(word);
 
 	error_log("32-bit write {:08x} -> unknown address {:08x}", word, address);
 }

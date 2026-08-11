@@ -10,6 +10,7 @@
 
 #include <vector>
 
+namespace Interrupt { class INTC; }
 namespace Gpu {
 	enum class TextureDepth : u8 {
 		T4 = 0,
@@ -122,7 +123,7 @@ namespace Gpu {
 
 	class GPU {
 	public:
-		GPU(IRenderer* renderer) : m_Renderer(renderer) {
+		GPU(IRenderer* renderer, Interrupt::INTC* intc) : m_Renderer(renderer), m_INTC(intc) {
 			m_Renderer->m_Params = &params;
 			m_GP0.m_GPU = this;
 			m_GP1.m_GPU = this;
@@ -150,7 +151,9 @@ namespace Gpu {
 	private:
 		GP0 m_GP0;
 		GP1 m_GP1;
+
 		IRenderer* m_Renderer;
+		Interrupt::INTC* m_INTC;
 
 		bool m_VBlank = false;
 		u64 m_DotClock = 0;

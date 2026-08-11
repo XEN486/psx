@@ -6,6 +6,7 @@
 
 namespace Gpu { class GPU; }
 namespace Dma { class DMA; }
+namespace Interrupt { class INTC; }
 
 namespace Cpu {
 	static constexpr const size_t KiB = 1024;
@@ -25,7 +26,8 @@ namespace Cpu {
 		/// @param backend Pointer to the JIT backend.
 		/// @param gpu Pointer to the GPU.
 		/// @param dma Pointer to the DMA controller.
-		void Initialize(JitBackend* backend, Gpu::GPU* gpu, Dma::DMA* dma);
+		/// @param intc Pointer to the interrupt controller.
+		void Initialize(JitBackend* backend, Gpu::GPU* gpu, Dma::DMA* dma, Interrupt::INTC* intc);
 
 		/// @brief Reads a 32-bit value from the specified address.
 		/// @param address Address to read from.
@@ -76,6 +78,7 @@ namespace Cpu {
 		JitBackend* m_JitBackend;
 		Gpu::GPU* m_GPU;
 		Dma::DMA* m_DMA;
+		Interrupt::INTC* m_INTC;
 	};
 
 }
