@@ -75,6 +75,9 @@ namespace Cpu {
 		void BLTZAL(InstructionData& data) override;
 		void BGEZAL(InstructionData& data) override;
 
+	protected:
+		void MoveImm(InstructionData& data) override;
+
 	private:
 		void EmitFlushRegisters();
 		void EmitLoadRegisters();

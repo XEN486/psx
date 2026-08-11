@@ -222,6 +222,9 @@ namespace Cpu {
 		virtual void BGEZAL(InstructionData& data) = 0;
 
 	protected:
+		virtual void MoveImm(InstructionData& data) = 0;
+
+	protected:
 		R3000A* m_R3000A;
 		Memory* m_Memory;
 

@@ -114,6 +114,9 @@ static void IMPL_swr(Memory* memory, u32 address, u32 rt) {
 	memory->WriteVirtualMemory32(aligned, mem);
 }
 
+void JitX64::MoveImm(InstructionData& data) {
+	cc.mov(r[data.rt], data.addr);
+}
 
 void JitX64::LUI(InstructionData& data) {
 	if (data.rt == 0) return;

@@ -278,7 +278,34 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		}
 
 		// --- normal ---
-		case 0b001111: { UseRegisters({data.rt}); data.ptr = &JitBackend::LUI; break; } // TODO: optimize LUI+ORI -> MOV
+		case 0b001111: {
+			// try optimize for LUI+ORI
+			// ORI = 001101
+			u32 next = m_Memory->ReadVirtualMemory32(m_CompilePC);
+			if (((next >> 26) & 0b111111) == 0b001101) {
+				InstructionData ori_data;
+				DecodeOp(ori_data, next);
+
+				// following condition must be met to optimize:
+				// ORI.rs == LUI.rt
+				// ORI.rt == LUI.rt
+				if (ori_data.rs == data.rt && ori_data.rt == data.rt) {
+					UseRegisters({data.rt});
+
+					data.addr = (data.imm << 16) | ori_data.imm;
+					data.ptr = &JitBackend::MoveImm;
+
+					// skip past ORI
+					m_CompilePC += 4;
+					break;
+				}
+				
+			}
+			
+			UseRegisters({data.rt});
+			data.ptr = &JitBackend::LUI;
+			break;
+		}
 		case 0b001101: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ORI; break; }
 		case 0b101011: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SW; break; }
 		case 0b001001: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ADDIU; break; }
