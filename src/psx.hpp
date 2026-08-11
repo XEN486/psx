@@ -1,11 +1,11 @@
 #ifndef PSX_HPP
 #define PSX_HPP
 
-#include "Interrupt/interrupt.hpp"
-#include "Gpu/gpu.hpp"
-#include "Cpu/cpu.hpp"
-#include "Dma/dma.hpp"
-#include "Dma/otc.hpp"
+#include "interrupt/interrupt.hpp"
+#include "gpu/gpu.hpp"
+#include "cpu/cpu.hpp"
+#include "dma/dma.hpp"
+#include "dma/otc.hpp"
 
 class PlayStation {
 public:

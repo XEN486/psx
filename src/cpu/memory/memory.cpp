@@ -1,8 +1,8 @@
 #include "memory.hpp"
 #include "../cpu.hpp"
-#include "../../Gpu/gpu.hpp"
-#include "../../Dma/dma.hpp"
-#include "../../Interrupt/interrupt.hpp"
+#include "../../gpu/gpu.hpp"
+#include "../../dma/dma.hpp"
+#include "../../interrupt/interrupt.hpp"
 
 #include <fstream>
 using namespace Cpu;

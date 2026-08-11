@@ -1,5 +1,5 @@
 #include "jit_x64.hpp"
-#include "../Memory/memory.hpp"
+#include "../memory/memory.hpp"
 
 #include <type_traits>
 #include <cassert>

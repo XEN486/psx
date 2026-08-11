@@ -1,5 +1,5 @@
 #include "gpu.hpp"
-#include "../Interrupt/interrupt.hpp"
+#include "../interrupt/interrupt.hpp"
 using namespace Gpu;
 
 void GPU::Reset() {

@@ -1,7 +1,7 @@
 #ifndef DMA_DMA_HPP
 #define DMA_DMA_HPP
 
-#include "../Cpu/Memory/memory.hpp"
+#include "../cpu/memory/memory.hpp"
 #include "../utils.hpp"
 
 #include <memory>

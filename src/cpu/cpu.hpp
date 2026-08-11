@@ -1,7 +1,7 @@
 #ifndef CPU_CPU_HPP
 #define CPU_CPU_HPP
 
-#include "Memory/memory.hpp"
+#include "memory/memory.hpp"
 #include "../utils.hpp"
 
 #include <asmjit/core.h>

@@ -1,11 +1,11 @@
 #ifndef GPU_GPU_HPP
 #define GPU_GPU_HPP
 
-#include "Renderer/renderer.hpp"
-#include "Gp0/gp0.hpp"
-#include "Gp1/gp1.hpp"
+#include "renderer/renderer.hpp"
+#include "gp0/gp0.hpp"
+#include "gp1/gp1.hpp"
 
-#include "../Dma/dma.hpp"
+#include "../dma/dma.hpp"
 #include "../utils.hpp"
 
 #include <vector>

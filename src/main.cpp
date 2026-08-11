@@ -1,5 +1,5 @@
-#include "Gpu/Renderer/renderer_sdl.hpp"
-#include "Cpu/x64/jit_x64.hpp"
+#include "gpu/renderer/renderer_sdl.hpp"
+#include "cpu/x64/jit_x64.hpp"
 #include "psx.hpp"
 
 #include <print>
@@ -22,7 +22,7 @@ int main() {
 	psx.LoadBIOS("roms/scph1001.bin");
 	psx.Reset();
 
-	psx.GetCPU().SideloadExe("roms/psxtest_cpu.exe");
+	//psx.GetCPU().SideloadExe("roms/psxtest_cpu.exe");
 
 	constexpr u64 CPU_HZ = 33'868'800;
 	constexpr u64 FRAMES_PER_BATCH = 4;

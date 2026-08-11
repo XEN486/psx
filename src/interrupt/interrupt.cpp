@@ -1,5 +1,5 @@
 #include "interrupt.hpp"
-#include "../Cpu/cpu.hpp"
+#include "../cpu/cpu.hpp"
 using namespace Interrupt;
 
 void INTC::Interrupt(IRQ irq) {
