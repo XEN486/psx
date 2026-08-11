@@ -22,7 +22,7 @@ int main() {
 	psx.LoadBIOS("roms/scph1001.bin");
 	psx.Reset();
 
-	//cpu.SideloadExe("roms/psxtest_cpu.exe");
+	psx.GetCPU().SideloadExe("roms/psxtest_cpu.exe");
 
 	constexpr u64 CPU_HZ = 33'868'800;
 	constexpr u64 FRAMES_PER_BATCH = 4;

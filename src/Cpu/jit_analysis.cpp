@@ -306,6 +306,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 			data.ptr = &JitBackend::LUI;
 			break;
 		}
+		
 		case 0b001101: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ORI; break; }
 		case 0b101011: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SW; break; }
 		case 0b001001: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::ADDIU; break; }

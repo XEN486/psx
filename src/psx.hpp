@@ -15,6 +15,8 @@ public:
 	void RunBatch(u64 batch_size);
 	void Release();
 
+	Cpu::CPU& GetCPU() { return *m_CPU; }
+
 private:
 	Interrupt::INTC* m_INTC;
 	Gpu::GPU* m_GPU;
