@@ -12,7 +12,12 @@ int main() {
 
 	SDL_Window* window;
 	SDL_Renderer* sdl_renderer;
+
+#ifdef ENABLE_VRAM_VIEW
 	SDL_CreateWindowAndRenderer("psx", 1024, 512, SDL_WINDOW_RESIZABLE, &window, &sdl_renderer);
+#else
+	SDL_CreateWindowAndRenderer("psx", 1280, 960, SDL_WINDOW_RESIZABLE, &window, &sdl_renderer);
+#endif
 
 	Gpu::RendererSDL renderer(window, sdl_renderer);
 	Cpu::JitX64 backend;

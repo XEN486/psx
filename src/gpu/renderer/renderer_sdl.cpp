@@ -314,7 +314,11 @@ void RendererSDL::Draw() {
 		height * scale
 	};
 
+#ifdef ENABLE_VRAM_VIEW
 	SDL_RenderTexture(m_Renderer, m_Texture, NULL, NULL);
+#else
+	SDL_RenderTexture(m_Renderer, m_Texture, &src_rect, &dst_rect);
+#endif
 	SDL_RenderPresent(m_Renderer);
 }
 
