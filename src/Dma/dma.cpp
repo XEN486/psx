@@ -72,8 +72,8 @@ u32 DMA::Read(u32 address) {
 	if (major <= 6) {
 		auto channel = m_Channels[major];
 		if (!channel) {
-			error_log("reading unknown channel {}", major);
-			exit(1);
+			error_log("reading unknown DMA channel {}", major);
+			return 0;
 		}
 
 		switch (minor) {
@@ -108,8 +108,8 @@ void DMA::Write(u32 address, u32 value) {
 	if (major <= 6) {
 		auto channel = m_Channels[major];
 		if (!channel) {
-			error_log("reading unknown channel {}", major);
-			exit(1);
+			error_log("writing {:08x} -> unknown DMA channel {}", value, major);
+			return;
 		}
 
 		switch (minor) {
