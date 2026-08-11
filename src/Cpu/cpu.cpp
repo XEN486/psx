@@ -48,8 +48,12 @@ void CPU::Reset() {
 void CPU::SideloadExe(std::filesystem::path path) {
 	std::ifstream file;
 	file.open(path, std::ios::binary);
+	if (!file) {
+		error_log("couldn't load PS-EXE '{}'", path.filename().string());
+	}
 
 	// run CPU as normal until we reach $800300000
+	Reset();
 	while (m_R3000A.pc != 0x80030000) RunOnce();
 
 	u32 initial_pc;
@@ -71,7 +75,7 @@ void CPU::SideloadExe(std::filesystem::path path) {
 	// copy EXE code/data to RAM
 	// ram[exe_ram_addr..(exe_ram_addr+exe_size)] <- file[2048..(2048+exe_size)]
 	file.seekg(2048);
-	file.read(reinterpret_cast<char*>(m_Memory.ram + (exe_ram_addr & 0x1fffffff)), exe_size);
+	file.read(reinterpret_cast<char*>(m_Memory.ram + m_Memory.VirtualToPhysical(exe_ram_addr)), exe_size);
 
 	// set registers
 	m_R3000A.gpr[28] = initial_r28;
@@ -82,7 +86,6 @@ void CPU::SideloadExe(std::filesystem::path path) {
 
 	// jump to pc
 	m_R3000A.pc = initial_pc;
-	m_JitBackend->InvalidateAll(); // invalidate the whole block cache just in case
 
 	debug_log("loaded {} ({}KiB -> {:08x})", path.filename().string(), exe_size / KiB, exe_ram_addr);
 	file.close();
