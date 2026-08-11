@@ -6,6 +6,16 @@ void GP1::DmaDirection(u32 word) {
 }
 
 void GP1::Reset(u32) {
+	memset(&gpu->params, 0, sizeof(GPUParameters));
+	gpu->params.display_disabled = true;
+	gpu->params.interlaced = true;
+
+	gpu->params.display_horiz_start = 0x200;
+	gpu->params.display_horiz_end = 0xc00;
+	gpu->params.display_line_start = 0x10;
+	gpu->params.display_line_end = 0x100;
+
+	ResetCommandBuffer(0);
 	gpu->Reset();
 }
 
@@ -100,11 +110,21 @@ void GP1::ReadInternalRegister(u32 word) {
 	}
 }
 
+void GP1::DisplayEnable(u32 word) {
+	gpu->params.display_disabled = word & 1;
+}
+
+void GP1::AcknowledgeIRQ(u32) {
+	gpu->params.interrupt = false;
+}
+
 void GP1::Send(u32 word) {
 	u8 op = (word >> 24) & 0xff;
 	switch (op) {
 		case 0x00: { GP1::Reset(word); break; }
 		case 0x01: { GP1::ResetCommandBuffer(word); break; }
+		case 0x02: { GP1::AcknowledgeIRQ(word); break; }
+		case 0x03: { GP1::DisplayEnable(word); break; }
 		case 0x04: { GP1::DmaDirection(word); break; }
 		case 0x05: { GP1::StartOfDisplayArea(word); break; }
 		case 0x06: { GP1::HorizontalDisplayRange(word); break; }

@@ -21,6 +21,8 @@ namespace Gpu {
 		void VerticalDisplayRange(u32 word);
 		void ResetCommandBuffer(u32 word);
 		void ReadInternalRegister(u32 word);
+		void DisplayEnable(u32 word);
+		void AcknowledgeIRQ(u32 word);
 	};
 }
 
