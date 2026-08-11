@@ -116,6 +116,7 @@ static void IMPL_swl(Memory* memory, u32 address, u32 rt) {
 		case 1: { mem = (word & 0xffff0000) | (rt >> 16); break; }
 		case 2: { mem = (word & 0xff000000) | (rt >> 8); break; }
 		case 3: { mem = rt; break; }
+		default: std::unreachable();
 	}
 
 	memory->WriteVirtualMemory32(aligned, mem);
@@ -131,6 +132,7 @@ static void IMPL_swr(Memory* memory, u32 address, u32 rt) {
 		case 1: { mem = (word & 0x000000ff) | (rt << 8); break; }
 		case 2: { mem = (word & 0x0000ffff) | (rt << 16); break; }
 		case 3: { mem = (word & 0x00ffffff) | (rt << 24); break; }
+		default: std::unreachable();
 	}
 
 	memory->WriteVirtualMemory32(aligned, mem);
@@ -560,4 +562,28 @@ void JitX64::SWR(InstructionData& data) {
 	node->set_arg(0, m_Memory);
 	node->set_arg(1, temp);
 	node->set_arg(2, r[data.rt]);
+}
+
+void JitX64::BLTZAL(InstructionData& data) {
+	Label end = cc.new_label();
+	cc.cmp(r[data.rs], 0);
+	cc.j(x86::CondCode::kSignedGE, end);
+
+	EmitJump((data.pc + 4) + (i32)((i16)data.imm << 2));
+
+	cc.bind(end);
+	EmitBranchDelay(data);
+	cc.mov(r[31], data.pc + 8);
+}
+
+void JitX64::BGEZAL(InstructionData& data) {
+	Label end = cc.new_label();
+	cc.cmp(r[data.rs], 0);
+	cc.j(x86::CondCode::kSignedLT, end);
+
+	EmitJump((data.pc + 4) + (i32)((i16)data.imm << 2));
+
+	cc.bind(end);
+	EmitBranchDelay(data);
+	cc.mov(r[31], data.pc + 8);
 }

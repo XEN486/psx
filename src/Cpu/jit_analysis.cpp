@@ -238,6 +238,22 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					break;
 				}
 
+				// BLTZAL
+				case 0b10000: {
+					UseRegisters({data.rs, 31}); 
+					data.ptr = &JitBackend::BLTZAL; 
+					data.type = InstructionType::Branch;
+					break;
+				}
+
+				// BGEZAL
+				case 0b10001: {
+					UseRegisters({data.rs, 31}); 
+					data.ptr = &JitBackend::BGEZAL; 
+					data.type = InstructionType::Branch;
+					break;
+				}
+
 				default: {
 					error_log("unknown regimm opcode {:05b} @ {:08x}", data.rt, data.pc);
 					exit(1);
@@ -282,7 +298,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		case 0b100110: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LWR; break; }
 		case 0b101010: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SWL; break; }
 		case 0b101110: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SWR; break; }
-		
+
 		// --- branches ---
 		// J
 		case 0b000010: {

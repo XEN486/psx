@@ -72,6 +72,8 @@ namespace Cpu {
 		void LWR(InstructionData& data) override;
 		void SWL(InstructionData& data) override;
 		void SWR(InstructionData& data) override;
+		void BLTZAL(InstructionData& data) override;
+		void BGEZAL(InstructionData& data) override;
 
 	private:
 		void FlushRegisters();
