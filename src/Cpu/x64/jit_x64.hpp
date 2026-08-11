@@ -92,16 +92,17 @@ namespace Cpu {
 		template <typename T>
 		void EmitJump(T address);
 
-		template <typename Size, typename T>
-		void EmitReadVirtualMemory(InstructionData& data, u8 ret_idx, T address, bool sign_extend);
-
-		template <typename Size, typename T>
-		void EmitWriteVirtualMemory(InstructionData& data, T address, u8 value_idx);
+		template <typename Size>
+		void EmitReadVirtualMemory(InstructionData& data, u8 ret_idx, asmjit::x86::Gp& address, bool sign_extend);
+		
+		template <typename Size>
+		void EmitWriteVirtualMemory(InstructionData& data, asmjit::x86::Gp& address, u8 value_idx);
 
 	private:
 		asmjit::x86::Compiler cc;
 		asmjit::x86::Gp r3000a;
 		asmjit::x86::Gp temp;
+		asmjit::x86::Gp temp64;
 		asmjit::x86::Gp r[32];
 	};
 }

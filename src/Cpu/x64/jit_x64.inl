@@ -20,12 +20,11 @@ namespace Cpu {
 		cc.mov(asmjit::x86::dword_ptr(r3000a, offsetof(R3000A, next_pc)), address);
 	}
 
-	template <typename Size, typename T>
-	void JitX64::EmitReadVirtualMemory(InstructionData& data, u8 ret_idx, T address, bool sign_extend) {
+	template <typename Size>
+	void JitX64::EmitReadVirtualMemory(InstructionData& data, u8 ret_idx, asmjit::x86::Gp& address, bool sign_extend) {
 		asmjit::x86::Gp& ret = r[ret_idx];
 
 		// TODO: optimize scratchpad/ram to not have call
-		static_assert(std::is_same_v<T, u32> || std::is_same_v<T, asmjit::x86::Gp>);
 		uintptr_t ptr;
 
 		// correct size temp register
@@ -70,21 +69,17 @@ namespace Cpu {
 
 		cc.bind(exception);
 		EmitException(data, ExceptionCause::LoadAddressError);
-		EmitEpilogue();
-		cc.ret();
-
 		cc.bind(end);
 	}
 
-	template <typename Size, typename T>
-	void JitX64::EmitWriteVirtualMemory(InstructionData& data, T address, u8 value_idx) {
+	template <typename Size>
+	void JitX64::EmitWriteVirtualMemory(InstructionData& data, asmjit::x86::Gp& address, u8 value_idx) {
 		// dont try write when cache is isolated
 		asmjit::Label end = cc.new_label();
 		cc.test(asmjit::x86::dword_ptr(r3000a, offsetof(R3000A, cop0[SR])), 0x10000); // sr.16 == ISc (isolate cache)
 		cc.jnz(end);
 
 		// TODO: optimize scratchpad/ram to not have call
-		static_assert(std::is_same_v<T, u32> || std::is_same_v<T, asmjit::x86::Gp>);
 		uintptr_t ptr;
 
 		// correct size value register
@@ -117,9 +112,6 @@ namespace Cpu {
 
 		cc.bind(exception);
 		EmitException(data, ExceptionCause::StoreAddressError);
-		EmitEpilogue();
-		cc.ret();
-		
 		cc.bind(end);
 	}
 }
