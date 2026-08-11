@@ -278,7 +278,11 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		case 0b001011: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SLTIU; break; }
 		case 0b100001: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LH; break; }
 		case 0b001110: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::XORI; break; }
-
+		case 0b100010: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LWL; break; }
+		case 0b100110: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::LWR; break; }
+		case 0b101010: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SWL; break; }
+		case 0b101110: { UseRegisters({data.rs, data.rt}); data.ptr = &JitBackend::SWR; break; }
+		
 		// --- branches ---
 		// J
 		case 0b000010: {

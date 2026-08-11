@@ -54,6 +54,89 @@ static void IMPL_rfe(R3000A* r3000a) {
 	r3000a->cop0[SR]|= (mode >> 2); // shift in previous bits
 }
 
+/*
+uint32_t LWL(uint32_t rt, uint32_t address)
+{
+    uint32_t aligned = address & ~3u;
+    uint32_t word = read32(aligned);
+
+    switch (address & 3) {
+        case 0:
+            return (rt & 0x00ffffffu) | (word << 24);
+
+        case 1:
+            return (rt & 0x0000ffffu) | (word << 16);
+
+        case 2:
+            return (rt & 0x000000ffu) | (word << 8);
+
+        case 3:
+            return word;
+    }
+
+    return rt;
+}
+*/
+
+static u32 IMPL_lwl(Memory* memory, u32 address, u32 rt) {
+	u32 aligned = address & ~(u32)3;
+	u32 word = memory->ReadVirtualMemory32(aligned);
+
+	switch (address & 3) {
+		case 0: return (rt & 0x00ffffff) | (word << 24);
+		case 1: return (rt & 0x0000ffff) | (word << 16);
+		case 2: return (rt & 0x000000ff) | (word << 8);
+		case 3: return word;
+	}
+
+	std::unreachable();
+}
+
+static u32 IMPL_lwr(Memory* memory, u32 address, u32 rt) {
+	u32 aligned = address & ~(u32)3;
+	u32 word = memory->ReadVirtualMemory32(aligned);
+
+	switch (address & 3) {
+		case 0: return word;
+		case 1: return (rt & 0xff000000) | (word >> 8);
+		case 2: return (rt & 0xffff0000) | (word >> 16);
+		case 3: return (rt & 0xffffff00) | (word >> 24);
+	}
+
+	std::unreachable();
+}
+
+static void IMPL_swl(Memory* memory, u32 address, u32 rt) {
+	u32 aligned = address & ~(u32)3;
+	u32 word = memory->ReadVirtualMemory32(aligned);
+
+	u32 mem;
+	switch (address & 3) {
+		case 0: { mem = (word & 0xffffff00) | (rt >> 24); break; }
+		case 1: { mem = (word & 0xffff0000) | (rt >> 16); break; }
+		case 2: { mem = (word & 0xff000000) | (rt >> 8); break; }
+		case 3: { mem = rt; break; }
+	}
+
+	memory->WriteVirtualMemory32(aligned, mem);
+}
+
+static void IMPL_swr(Memory* memory, u32 address, u32 rt) {
+	u32 aligned = address & ~(u32)3;
+	u32 word = memory->ReadVirtualMemory32(aligned);
+
+	u32 mem;
+	switch (address & 3) {
+		case 0: { mem = rt; break; }
+		case 1: { mem = (word & 0x000000ff) | (rt << 8); break; }
+		case 2: { mem = (word & 0x0000ffff) | (rt << 16); break; }
+		case 3: { mem = (word & 0x00ffffff) | (rt << 24); break; }
+	}
+
+	memory->WriteVirtualMemory32(aligned, mem);
+}
+
+
 void JitX64::LUI(InstructionData& data) {
 	if (data.rt == 0) return;
 	cc.mov(r[data.rt], (data.imm << 16));
@@ -427,4 +510,54 @@ void JitX64::SUB(InstructionData& data) {
 	cc.mov(temp, r[data.rs]);
 	cc.sub(temp, r[data.rt]);
 	CheckOverflow(data, (data.rd == 0) ? temp : r[data.rd], temp);
+}
+
+void JitX64::LWL(InstructionData& data) {
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_lwl), FuncSignature::build<u32, Memory*, u32, u32>());
+	node->set_arg(0, m_Memory);
+	node->set_arg(1, temp);
+	node->set_arg(2, r[data.rt]);
+	node->set_ret(0, r[data.rt]);
+}
+
+void JitX64::LWR(InstructionData& data) {
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_lwr), FuncSignature::build<u32, Memory*, u32, u32>());
+	node->set_arg(0, m_Memory);
+	node->set_arg(1, temp);
+	node->set_arg(2, r[data.rt]);
+	node->set_ret(0, r[data.rt]);
+}
+
+void JitX64::SWL(InstructionData& data) {
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_swl), FuncSignature::build<void, Memory*, u32, u32>());
+	node->set_arg(0, m_Memory);
+	node->set_arg(1, temp);
+	node->set_arg(2, r[data.rt]);
+}
+
+void JitX64::SWR(InstructionData& data) {
+	cc.lea(temp, x86::ptr(r[data.rs], (i32)(i16)data.imm));
+
+	// no need to flush and load registers here
+	InvokeNode* node;
+
+	cc.invoke(Out(node), reinterpret_cast<uintptr_t>(IMPL_swr), FuncSignature::build<void, Memory*, u32, u32>());
+	node->set_arg(0, m_Memory);
+	node->set_arg(1, temp);
+	node->set_arg(2, r[data.rt]);
 }

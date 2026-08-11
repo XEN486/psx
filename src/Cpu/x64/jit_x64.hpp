@@ -68,6 +68,10 @@ namespace Cpu {
 		void XORI(InstructionData& data) override;
 		void MULT(InstructionData& data) override;
 		void SUB(InstructionData& data) override;
+		void LWL(InstructionData& data) override;
+		void LWR(InstructionData& data) override;
+		void SWL(InstructionData& data) override;
+		void SWR(InstructionData& data) override;
 
 	private:
 		void FlushRegisters();

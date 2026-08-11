@@ -88,6 +88,9 @@ void JitX64::CheckOverflow(InstructionData& data, asmjit::x86::Gp& result, asmji
 
 	// overflow case, do the exception
 	cc.bind(overflow);
+
+	// TODO: this will only work when the block ends after the exception
 	EmitException(data, ExceptionCause::Overflow);
+
 	cc.bind(end);
 }

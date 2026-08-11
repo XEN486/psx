@@ -214,6 +214,10 @@ namespace Cpu {
 		virtual void XORI(InstructionData& data) = 0;
 		virtual void MULT(InstructionData& data) = 0;
 		virtual void SUB(InstructionData& data) = 0;
+		virtual void LWL(InstructionData& data) = 0;
+		virtual void LWR(InstructionData& data) = 0;
+		virtual void SWL(InstructionData& data) = 0;
+		virtual void SWR(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;
