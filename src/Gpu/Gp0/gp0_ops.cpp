@@ -46,6 +46,41 @@ static void ImageStore(GP0*) {
 	// TODO: image store
 }
 
+static void SetDrawingAreaTopLeft(GP0* gp0) {
+	u32 word = gp0->command[0];
+	gp0->gpu->params.drawing_area_top = (word >> 10) & 0x3ff;
+	gp0->gpu->params.drawing_area_left = word & 0x3ff;
+}
+
+static void SetDrawingAreaBottomLeft(GP0* gp0) {
+	u32 word = gp0->command[0];
+	gp0->gpu->params.drawing_area_bottom = (word >> 10) & 0x3ff;
+	gp0->gpu->params.drawing_area_right = word & 0x3ff;
+}
+
+static void SetDrawingOffset(GP0* gp0) {
+	u32 word = gp0->command[0];
+	u16 x = word & 0x7ff;
+	u16 y = (word >> 11) & 0x7ff;
+
+	gp0->gpu->params.drawing_x_offset = (i16)(x << 5) >> 5;
+	gp0->gpu->params.drawing_y_offset = (i16)(y << 5) >> 5;
+}
+
+static void TextureWindowSetting(GP0* gp0) {
+	u32 word = gp0->command[0];
+	gp0->gpu->params.texture_window_x_mask = word & 0x1f;
+	gp0->gpu->params.texture_window_y_mask = (word >> 5) & 0x1f;
+	gp0->gpu->params.texture_window_x_offset = (word >> 10) & 0x1f;
+	gp0->gpu->params.texture_window_y_offset = (word >> 15) & 0x1f;
+}
+
+static void MaskBitSetting(GP0* gp0) {
+	u32 word = gp0->command[0];
+	gp0->gpu->params.force_set_mask_bit = word & 1;
+	gp0->gpu->params.preserve_masked_pixels = (word >> 1) & 1;
+}
+
 void GP0::DecodeOp(u32 word) {
 	u8 op = (word >> 24) & 0xff;
 	switch (op) {
@@ -54,6 +89,11 @@ void GP0::DecodeOp(u32 word) {
 		case 0xa0: { m_Decoded.operands = 2; m_Decoded.ptr = &ImageLoad; break; }
 		case 0xc0: { m_Decoded.operands = 2; m_Decoded.ptr = &ImageStore; break; }
 		case 0xe1: { m_Decoded.operands = 0; m_Decoded.ptr = &DrawModeSetting; break; }
+		case 0xe2: { m_Decoded.operands = 0; m_Decoded.ptr = &TextureWindowSetting; break; }
+		case 0xe3: { m_Decoded.operands = 0; m_Decoded.ptr = &SetDrawingAreaTopLeft; break; }
+		case 0xe4: { m_Decoded.operands = 0; m_Decoded.ptr = &SetDrawingAreaBottomLeft; break; }
+		case 0xe5: { m_Decoded.operands = 0; m_Decoded.ptr = &SetDrawingOffset; break; }
+		case 0xe6: { m_Decoded.operands = 0; m_Decoded.ptr = &MaskBitSetting; break; }
 		
 		default: {
 			error_log("GP0({:02x}h) unknown", op);
