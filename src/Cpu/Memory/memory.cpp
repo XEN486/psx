@@ -49,6 +49,8 @@ u32 Memory::ReadVirtualMemory32(u32 address) {
 		return m_DMA->Read(address);
 	}
 
+	if (address == 0x1f801110) return 0xffffffff;
+
 	error_log("32-bit read <- unknown address {:08x}", address);
 	return 0;
 }
