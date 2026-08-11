@@ -4,7 +4,9 @@
 #include "Gp0/gp0.hpp"
 #include "Gp1/gp1.hpp"
 
+#include "../Dma/dma.hpp"
 #include "../utils.hpp"
+
 #include <vector>
 
 namespace Gpu {
@@ -138,6 +140,23 @@ namespace Gpu {
 	private:
 		GP0 m_GP0;
 		GP1 m_GP1;
+	};
+}
+
+namespace Dma {
+	struct GPU : public Dma::Channel {
+		GPU(Gpu::GPU* gpu) : m_GPU(gpu) {}
+
+		void Write(u32 word) override {
+			m_GPU->VBusWrite(0x1f801810, word);
+		}
+
+		u32 Read(u32, u32) {
+			return m_GPU->VBusRead(0x1f801810);
+		}
+
+	private:
+		Gpu::GPU* m_GPU;
 	};
 }
 

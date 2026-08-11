@@ -1,15 +1,17 @@
 #include "memory.hpp"
 #include "../cpu.hpp"
 #include "../../Gpu/gpu.hpp"
+#include "../../Dma/dma.hpp"
 
 #include <fstream>
 using namespace Cpu;
 
 #define IN_SCRATCHPAD(address) ((address >= 0x1f800000 && address <= 0x1f8003ff) || (address >= 0x9f800000 && address <= 0x9f8003ff))
 
-void Memory::Initialize(JitBackend* backend, Gpu::GPU* gpu) {
+void Memory::Initialize(JitBackend* backend, Gpu::GPU* gpu, Dma::DMA* dma) {
 	m_JitBackend = backend;
 	m_GPU = gpu;
+	m_DMA = dma;
 
 	// allocate memory for stuff on CPU bus
 	ram			= static_cast<u8*>(malloc(2 * MiB));
@@ -42,6 +44,11 @@ u32 Memory::ReadVirtualMemory32(u32 address) {
 		return m_GPU->VBusRead(address);
 	}
 
+	// DMA
+	if (address >= 0x1f801080 && address <= 0x1f8010ff) {
+		return m_DMA->Read(address);
+	}
+
 	error_log("32-bit read <- unknown address {:08x}", address);
 	return 0;
 }
@@ -65,6 +72,12 @@ void Memory::WriteVirtualMemory32(u32 address, u32 word) {
 	// VBUS
 	if (address == 0x1f801810 || address == 0x1f801814) {
 		m_GPU->VBusWrite(address, word);
+		return;
+	}
+
+	// DMA
+	if (address >= 0x1f801080 && address <= 0x1f8010ff) {
+		m_DMA->Write(address, word);
 		return;
 	}
 

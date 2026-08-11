@@ -5,6 +5,7 @@
 #include <filesystem>
 
 namespace Gpu { class GPU; }
+namespace Dma { class DMA; }
 
 namespace Cpu {
 	static constexpr const size_t KiB = 1024;
@@ -23,7 +24,8 @@ namespace Cpu {
 		/// @brief Initializes and allocates everything necessary for the memory map.
 		/// @param backend Pointer to the JIT backend.
 		/// @param gpu Pointer to the GPU.
-		void Initialize(JitBackend* backend, Gpu::GPU* gpu);
+		/// @param dma Pointer to the DMA controller.
+		void Initialize(JitBackend* backend, Gpu::GPU* gpu, Dma::DMA* dma);
 
 		/// @brief Reads a 32-bit value from the specified address.
 		/// @param address Address to read from.
@@ -73,6 +75,7 @@ namespace Cpu {
 	private:
 		JitBackend* m_JitBackend;
 		Gpu::GPU* m_GPU;
+		Dma::DMA* m_DMA;
 	};
 
 }
