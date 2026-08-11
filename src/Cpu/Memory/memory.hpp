@@ -1,5 +1,5 @@
-#ifndef MEMORY_MEMORY_HPP
-#define MEMORY_MEMORY_HPP
+#ifndef CPU_MEMORY_MEMORY_HPP
+#define CPU_MEMORY_MEMORY_HPP
 
 #include "../../utils.hpp"
 #include <filesystem>

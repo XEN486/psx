@@ -54,30 +54,6 @@ static void IMPL_rfe(R3000A* r3000a) {
 	r3000a->cop0[SR]|= (mode >> 2); // shift in previous bits
 }
 
-/*
-uint32_t LWL(uint32_t rt, uint32_t address)
-{
-    uint32_t aligned = address & ~3u;
-    uint32_t word = read32(aligned);
-
-    switch (address & 3) {
-        case 0:
-            return (rt & 0x00ffffffu) | (word << 24);
-
-        case 1:
-            return (rt & 0x0000ffffu) | (word << 16);
-
-        case 2:
-            return (rt & 0x000000ffu) | (word << 8);
-
-        case 3:
-            return word;
-    }
-
-    return rt;
-}
-*/
-
 static u32 IMPL_lwl(Memory* memory, u32 address, u32 rt) {
 	u32 aligned = address & ~(u32)3;
 	u32 word = memory->ReadVirtualMemory32(aligned);
