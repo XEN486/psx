@@ -74,9 +74,11 @@ namespace Cpu {
 		void SWR(InstructionData& data) override;
 		void BLTZAL(InstructionData& data) override;
 		void BGEZAL(InstructionData& data) override;
+		void BREAK(InstructionData& data) override;
 
 	protected:
 		void MoveImm(InstructionData& data) override;
+		void Illegal(InstructionData& data) override;
 
 	private:
 		void EmitFlushRegisters();

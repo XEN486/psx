@@ -49,9 +49,9 @@ static void IMPL_multu(R3000A* r3000a, u32 rs, u32 rt) {
 }
 
 static void IMPL_rfe(R3000A* r3000a) {
-	u8 mode = r3000a->cop0[SR] & 0x3f;
-	r3000a->cop0[SR] &= ~(u32)0x3f;
-	r3000a->cop0[SR]|= (mode >> 2); // shift in previous bits
+	u32 mode = r3000a->cop0[SR] & 0x3f;
+	r3000a->cop0[SR] &= 0xfffffff0;
+	r3000a->cop0[SR] |= (mode >> 2); // shift in previous bits
 }
 
 static u32 IMPL_lwl(Memory* memory, u32 address, u32 rt) {
@@ -116,6 +116,10 @@ static void IMPL_swr(Memory* memory, u32 address, u32 rt) {
 
 void JitX64::MoveImm(InstructionData& data) {
 	cc.mov(r[data.rt], data.addr);
+}
+
+void JitX64::Illegal(InstructionData& data) {
+	EmitException(data, ExceptionCause::IllegalInstruction);
 }
 
 void JitX64::LUI(InstructionData& data) {
@@ -417,7 +421,12 @@ void JitX64::MTHI(InstructionData& data) {
 	cc.mov(x86::dword_ptr(r3000a, offsetof(R3000A, hi)), r[data.rs]);
 }
 
-void JitX64::RFE(InstructionData&) {
+void JitX64::RFE(InstructionData& data) {
+	if ((data.imm & 0x3f) != 0b010000) {
+		EmitException(data, ExceptionCause::IllegalInstruction);
+		return;
+	}
+
 	// no need to flush and load registers here
 	InvokeNode* node;
 
@@ -503,7 +512,8 @@ void JitX64::LWL(InstructionData& data) {
 	node->set_arg(0, m_Memory);
 	node->set_arg(1, temp);
 	node->set_arg(2, r[data.rt]);
-	node->set_ret(0, r[data.rt]);
+	node->set_ret(0, temp);
+	if (data.rt) cc.mov(r[data.rt], temp);
 }
 
 void JitX64::LWR(InstructionData& data) {
@@ -516,7 +526,8 @@ void JitX64::LWR(InstructionData& data) {
 	node->set_arg(0, m_Memory);
 	node->set_arg(1, temp);
 	node->set_arg(2, r[data.rt]);
-	node->set_ret(0, r[data.rt]);
+	node->set_ret(0, temp);
+	if (data.rt) cc.mov(r[data.rt], temp);
 }
 
 void JitX64::SWL(InstructionData& data) {
@@ -565,4 +576,8 @@ void JitX64::BGEZAL(InstructionData& data) {
 	cc.bind(end);
 	EmitBranchDelay(data);
 	cc.mov(r[31], data.pc + 8);
+}
+
+void JitX64::BREAK(InstructionData& data) {
+	EmitException(data, ExceptionCause::Break);
 }

@@ -220,9 +220,11 @@ namespace Cpu {
 		virtual void SWR(InstructionData& data) = 0;
 		virtual void BLTZAL(InstructionData& data) = 0;
 		virtual void BGEZAL(InstructionData& data) = 0;
+		virtual void BREAK(InstructionData& data) = 0;
 
 	protected:
 		virtual void MoveImm(InstructionData& data) = 0;
+		virtual void Illegal(InstructionData& data) = 0;
 
 	protected:
 		R3000A* m_R3000A;

@@ -8,11 +8,11 @@ using namespace asmjit;
 bool JitBackend::InitJit(R3000A* cpu, Memory* memory) {
 	m_Memory = memory;
 	m_R3000A = cpu;
+	m_Logger.set_file(fopen("psx_asmjit.log", "w"));
 
 	Error err = m_CodeHolder.init(m_Runtime.environment(), m_Runtime.cpu_features());
 
 #ifdef ENABLE_ASMJIT_LOGGING
-	m_Logger.set_file(fopen("asmjit.log", "w"));
 	m_CodeHolder.set_logger(&m_Logger);
 #endif
 
@@ -50,8 +50,18 @@ void JitBackend::Invalidate(u32 pc) {
 #endif
 }
 
+static void nop() {
+
+}
+
 CompiledBlock& JitBackend::RecompileBlock(u32 pc) {
 	CompiledBlock& block = m_BlockCache[pc];
+	if (pc & 3) [[unlikely]] {
+		m_R3000A->Exception(ExceptionCause::LoadAddressError, pc);
+		block.fn = nop;
+		return block;
+	}
+
 	m_CompilePC = pc;
 	block.start_pc = pc;
 	block.instructions = 0;
@@ -72,11 +82,9 @@ CompiledBlock& JitBackend::RecompileBlock(u32 pc) {
 		}
 
 		else if (data.type == InstructionType::Branch) {
-			// analyze branch delay slot
+			// analyze and store branch delay slot first
 			InstructionData branch_delay = AnalyzeOp(Fetch());
 			branch_delay.in_branch_delay = true;
-
-			// store branch delay in branch instruction
 			data.branch_delay = std::make_shared<InstructionData>(branch_delay);
 			block.instructions++;
 
@@ -86,10 +94,11 @@ CompiledBlock& JitBackend::RecompileBlock(u32 pc) {
 
 			// account for delay slot
 			end_pc += 4;
+			//m_InBranchDelay = true;
 			break;
 		}
 
-		// end the block early if this is a syscall
+		// end the block early if this is a syscall instruction
 		else if (data.type == InstructionType::Syscall) {
 			m_Instructions.push_back(data);
 			block.instructions++;
@@ -120,7 +129,6 @@ CompiledBlock& JitBackend::RecompileBlock(u32 pc) {
 }
 
 CompiledBlock& JitBackend::GetOrCompileBlock(u32 pc) {
-	//pc &= 0x1fffffff;
     auto it = m_BlockCache.find(pc);
     if (it != m_BlockCache.end() && it->second.valid) {
 		return it->second;
@@ -131,8 +139,6 @@ CompiledBlock& JitBackend::GetOrCompileBlock(u32 pc) {
 }
 
 void JitBackend::DecodeOp(InstructionData& data, u32 instruction) {
-	data.in_branch_delay = false;
-
 	// R-type and I-type
 	data.rs = (instruction >> 21) & 0b11111;
 	data.rt = (instruction >> 16) & 0b11111;

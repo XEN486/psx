@@ -4,6 +4,7 @@ using namespace Cpu;
 InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 	InstructionData data;
 	data.pc = m_CompilePC - 4;
+	data.in_branch_delay = false;
 	data.type = InstructionType::Normal;
 	DecodeOp(data, instruction);
 
@@ -211,11 +212,21 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 					break;
 				}
 
+				// BREAK
+				case 0b001101: {
+					data.ptr = &JitBackend::BREAK;
+					data.type = InstructionType::Syscall;
+					break;
+				}
+
 				default: {
 					error_log("unknown special opcode {:06b} @ {:08x}", data.funct, data.pc);
-					exit(1);
+					data.ptr = &JitBackend::Illegal;
+					data.type = InstructionType::Syscall;
+					break;
 				}
 			}
+
 			break;
 		}
 
@@ -223,6 +234,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 		case 0b000001: {
 			switch (data.rt) {
 				// BLTZ
+				case 0b00010:
 				case 0b00000: {
 					UseRegisters({data.rs}); 
 					data.ptr = &JitBackend::BLTZ; 
@@ -231,6 +243,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 				}
 
 				// BGEZ
+				case 0b00011:
 				case 0b00001: {
 					UseRegisters({data.rs}); 
 					data.ptr = &JitBackend::BGEZ; 
@@ -239,6 +252,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 				}
 
 				// BLTZAL
+				case 0b10010:
 				case 0b10000: {
 					UseRegisters({data.rs, 31}); 
 					data.ptr = &JitBackend::BLTZAL; 
@@ -247,6 +261,7 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 				}
 
 				// BGEZAL
+				case 0b10011:
 				case 0b10001: {
 					UseRegisters({data.rs, 31}); 
 					data.ptr = &JitBackend::BGEZAL; 
@@ -256,7 +271,9 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 
 				default: {
 					error_log("unknown regimm opcode {:05b} @ {:08x}", data.rt, data.pc);
-					exit(1);
+					data.ptr = &JitBackend::Illegal;
+					data.type = InstructionType::Syscall;
+					break;;
 				}
 			}
 			break;	
@@ -271,7 +288,9 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 
 				default: {
 					error_log("unknown cop0 opcode {:05b} @ {:08x}", data.rs, data.pc);
-					exit(1);
+					data.ptr = &JitBackend::Illegal;
+					data.type = InstructionType::Syscall;
+					break;;
 				}
 			}
 			break;
@@ -377,7 +396,9 @@ InstructionData JitBackend::AnalyzeOp(u32 instruction) {
 
 		default: {
 			error_log("unknown opcode {:06b} @ {:08x}", op, data.pc);
-			exit(1);
+			data.ptr = &JitBackend::Illegal;
+			data.type = InstructionType::Syscall;
+			break;
 		}
 	}
 
