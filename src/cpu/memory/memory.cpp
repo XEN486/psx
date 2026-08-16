@@ -120,6 +120,8 @@ u16 Memory::ReadVirtualMemory16(u32 address) {
 	// SPU
 	if (address >= 0x1f801c00 && address <= 0x1f801e80) return 0;
 
+	// SIO
+	if (address == 0x1f80104a) return 0;
 	error_log("16-bit read <- unknown address {:08x}", address);
 	return 0;
 }
