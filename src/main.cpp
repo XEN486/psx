@@ -27,16 +27,12 @@ int main() {
 	psx.LoadBIOS("roms/scph1001.bin");
 	psx.Reset();
 
-	//psx.GetCPU().SideloadExe("roms/psxtest_cpu.exe");
-
-	constexpr u64 CPU_HZ = 33'868'800;
-	constexpr u64 FRAMES_PER_BATCH = 4;
-	constexpr u64 CYCLES_PER_BATCH = CPU_HZ / (FRAMES_PER_BATCH * 60);
+	psx.GetCPU().SideloadExe("roms/psxtest_cpu.exe");
 
 	bool running = true;
 	SDL_Event event;
 	while (running) {
-		psx.RunBatch(CYCLES_PER_BATCH);
+		psx.RunBatch();
 
 		if (renderer.FrameReady()) {
 			while (SDL_PollEvent(&event)) {

@@ -23,14 +23,12 @@ void PlayStation::Reset() {
 	m_DMA->Reset();
 }
 
-void PlayStation::RunBatch(u64 batch_size) {
-	u64 cpu_cycles = 0;
-	while (cpu_cycles < batch_size) {
-		size_t instructions = m_CPU->RunOnce();
-		cpu_cycles += instructions * 2; // 2 cycles per instruction
-	}
+size_t PlayStation::RunBatch() {
+	size_t instructions = m_CPU->RunOnce();
+	u64 cpu_cycles = instructions * 2; // 2 cycles per instruction
 
 	m_GPU->Tick((cpu_cycles * 2) / 3);
+	return cpu_cycles;
 }
 
 void PlayStation::Release() {

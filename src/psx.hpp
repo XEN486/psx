@@ -12,7 +12,7 @@ public:
 	void Create(Cpu::JitBackend* backend, Gpu::IRenderer* renderer);
 	void LoadBIOS(std::filesystem::path path);
 	void Reset();
-	void RunBatch(u64 batch_size);
+	size_t RunBatch();
 	void Release();
 
 	Cpu::CPU& GetCPU() { return *m_CPU; }
