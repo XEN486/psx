@@ -1,6 +1,7 @@
 #include "cpu.hpp"
 #include <fstream>
 
+#define EXCEPTION_WRITE_MASK 0b11110000000000000000000001111100
 using namespace Cpu;
 
 CPU::CPU(JitBackend* backend) : m_JitBackend(backend) {
@@ -127,28 +128,28 @@ void R3000A::WriteCOP0(u8 reg, u32 word) {
 }
 
 void R3000A::Exception(ExceptionCause cause, u32 epc, bool in_delay_slot) {
-	// EPC <- epc
+	// set EPC
 	cop0[EPC] = epc;
 
-	// CAUSE.ExcCode <- exception cause
-	u8 exc_code = 0b1111 << 2;
-	cop0[CAUSE] = (cop0[CAUSE] & ~exc_code) | ((static_cast<u8>(cause) & 0b1111) << 2);
+	// set CAUSE
+	u8 cause_bits = (u8)cause << 2;
+	cop0[CAUSE] = (cop0[CAUSE] & ~EXCEPTION_WRITE_MASK) | (cause_bits & EXCEPTION_WRITE_MASK);
 
-	// CAUSE.BD <- in branch delay
-	u32 bd = 1UL << 31;
-	cop0[CAUSE] = (cop0[CAUSE] & ~bd) | ((in_delay_slot ? 1 : 0) << 31);
+	// find handler from BEV bit
+	bool bev = (cop0[SR] & (1 << 22)) != 0;
+	u32 handler = bev ? 0xbfc00180 : 0x80000080;
 
-	// exception in delay slot case
+	// update SR
+	u8 mode = cop0[SR] & 0x3f;
+	cop0[SR] &= ~0x3f;
+	cop0[SR] |= (mode << 2) & 0x3f;
+	
+	// if we are in a branch delay slot, EPC points to the branch instruction and bit 31 in CAUSE is set
 	if (in_delay_slot) {
-		cop0[EPC] -= 4;			// EPC <- branch instruction
-		cop0[TAR] = next_pc;	// TAR <- branch target
+		cop0[EPC] -= 4;
+		cop0[CAUSE] |= 1 << 31;
 	}
 
-	// previous <- current, and kernel mode and disable interrupts by clearing low bits
-	u8 mode = cop0[SR] & 0x3f;
-	cop0[SR] = (cop0[SR] & ~(u32)0x3f) | ((mode << 2) & 0x3f);
-
-	// next pc <- exception vector
-	bool bev = cop0[SR] & (1 << 22);
-	next_pc = bev ? 0xbfc00180 : 0x80000080;
+	// no branch delay for exceptions
+	next_pc = handler;
 }
