@@ -120,6 +120,10 @@ void GP0::RenderPolygon() {
 	m_GPU->GetRenderer().DrawPolygon(m_DrawPolygonOptions, positions, colors, uvs);
 }
 
+void GP0::RenderPixel() {
+	m_GPU->GetRenderer().DrawPixel(Position(m_Command[1]), Color(m_Command[0]));
+}
+
 void GP0::DecodeOp(u32 word) {
 	u8 op = (word >> 24) & 0xff;
 
@@ -164,6 +168,7 @@ void GP0::DecodeOp(u32 word) {
 		case 0xe4: { m_Decoded.operands = 0; m_Decoded.ptr = &GP0::SetDrawingAreaBottomRight; break; }
 		case 0xe5: { m_Decoded.operands = 0; m_Decoded.ptr = &GP0::SetDrawingOffset; break; }
 		case 0xe6: { m_Decoded.operands = 0; m_Decoded.ptr = &GP0::MaskBitSetting; break; }
+		case 0x68: { m_Decoded.operands = 1; m_Decoded.ptr = &GP0::RenderPixel; break; }
 		
 		default: {
 			error_log("GP0({:02x}h) unknown", op);

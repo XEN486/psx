@@ -41,6 +41,7 @@ namespace Gpu {
 		void TextureWindowSetting();
 		void MaskBitSetting();
 		void RenderPolygon();
+		void RenderPixel();
 	
 	private:
 		void Execute();
