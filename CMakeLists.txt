@@ -26,7 +26,7 @@ target_link_libraries(psx
 )
 
 if(MSVC)
-	target_compile_options(psx PRIVATE /W4)
+	target_compile_options(psx PRIVATE /W4 /MP)
 else()
 	target_compile_options(psx PRIVATE -Wall -Wextra)
 endif()
